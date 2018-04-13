@@ -1232,6 +1232,14 @@ static int verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
 			goto bad;
 	}
 
+#ifdef CONFIG_DM_ANDROID_VERITY_AT_MOST_ONCE_DEFAULT_ENABLED
+	if (!v->validated_blocks) {
+		r = verity_alloc_most_once(v);
+		if (r)
+			goto bad;
+	}
+#endif
+
 	/* Root hash signature is  a optional parameter*/
 	r = verity_verify_root_hash(root_hash_digest_to_validate,
 				    strlen(root_hash_digest_to_validate),
@@ -1241,6 +1249,7 @@ static int verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
 		ti->error = "Root hash verification failed";
 		goto bad;
 	}
+
 	v->hash_per_block_bits =
 		__fls((1 << v->hash_dev_block_bits) / v->digest_size);
 
