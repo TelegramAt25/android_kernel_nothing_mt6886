@@ -3423,8 +3423,9 @@ static u8 drm_match_cea_mode_clock_tolerance(const struct drm_display_mode *to_m
  * Return: The CEA Video ID (VIC) of the mode or 0 if it isn't a CEA-861
  * mode.
  */
-u8 drm_match_cea_mode(const struct drm_display_mode *to_match)
+inline u8 drm_match_cea_mode(const struct drm_display_mode *to_match)
 {
+#if 0
 	unsigned int match_flags = DRM_MODE_MATCH_TIMINGS | DRM_MODE_MATCH_FLAGS;
 	u8 vic;
 
@@ -3451,6 +3452,7 @@ u8 drm_match_cea_mode(const struct drm_display_mode *to_match)
 				return vic;
 		} while (cea_mode_alternate_timings(vic, &cea_mode));
 	}
+#endif
 
 	return 0;
 }
