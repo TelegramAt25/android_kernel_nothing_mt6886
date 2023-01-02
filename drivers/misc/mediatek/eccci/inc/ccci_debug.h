@@ -43,7 +43,7 @@ extern int ccci_dump_write(unsigned int buf_type, unsigned int flag, const char 
 	pr_debug("[ccci%d/" tag "]" fmt, (idx+1), ##args);
 
 #define CCCI_LEGACY_ERR_LOG(idx, tag, fmt, args...) \
-	pr_err("[ccci%d/" tag "]" fmt, (idx+1), ##args)
+	pr_debug("[ccci%d/" tag "]" fmt, (idx+1), ##args)
 
 /*--------------------------------------------------------------------------*/
 /* This log is used for driver init and part of first boot up log */
