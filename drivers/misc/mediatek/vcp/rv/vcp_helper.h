@@ -243,7 +243,9 @@ extern struct tasklet_struct vcp_A_irq1_tasklet;
 extern u32 mt_irq_get_pending(unsigned int irq);
 #endif
 void dump_vcp_irq_status(void);
+#if IS_ENABLED(CONFIG_MTK_AEE_HANGDET)
 extern void mt_irq_dump_status(int irq);
+#endif
 
 
 
