@@ -2844,6 +2844,7 @@ static int vcp_device_probe(struct platform_device *pdev)
 }
 void dump_vcp_irq_status(void)
 {
+#if IS_ENABLED(CONFIG_MTK_AEE_HANGDET)
 	int i;
 
 	pr_info("[VCP] %s Dump wdt irq %d status\n", __func__, vcpreg.irq0);
@@ -2858,6 +2859,7 @@ void dump_vcp_irq_status(void)
 		mt_irq_dump_status(vcp_mboxdev.info_table[i].irq_num);
 	}
 
+#endif
 }
 EXPORT_SYMBOL_GPL(dump_vcp_irq_status);
 

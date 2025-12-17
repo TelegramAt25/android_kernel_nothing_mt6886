@@ -668,9 +668,11 @@ end:
 void scp_aed(enum SCP_RESET_TYPE type, enum scp_core_id id)
 {
 	char *scp_aed_title = NULL;
+#if IS_ENABLED(CONFIG_MTK_AEE_FEATURE)
 	size_t timeout = msecs_to_jiffies(SCP_COREDUMP_TIMEOUT_MS);
 	size_t expire = jiffies + timeout;
 	int ret;
+#endif
 
 	if (!scp_ee_enable) {
 		pr_debug("[SCP]ee disable value=%d\n", scp_ee_enable);
