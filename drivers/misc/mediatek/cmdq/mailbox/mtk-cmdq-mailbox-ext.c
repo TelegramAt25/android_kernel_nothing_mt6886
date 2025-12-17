@@ -1713,7 +1713,6 @@ void cmdq_thread_dump(struct mbox_chan *chan, struct cmdq_pkt *cl_pkt,
 #if IS_ENABLED(CONFIG_MTK_IRQ_DBG)
 	if (curr_pa == end_pa && irq) {
 		cmdq_util_msg("gic dump not support irq id:%u\n", cmdq->irq);
-		mt_irq_dump_status(cmdq->irq);
 	}
 #endif
 
