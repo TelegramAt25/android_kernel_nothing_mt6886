@@ -132,6 +132,7 @@ static int scp_logger_wakeup_handler(unsigned int id, void *prdata, void *data,
 	return 0;
 }
 
+#if IS_ENABLED(CONFIG_MTK_TINYSYS_SCP_DEBUG_SUPPORT)
 /*
  * get log from scp to last_log_buf
  * @param len:  data length
@@ -223,7 +224,6 @@ exit:
 	return ret;
 }
 
-#if IS_ENABLED(CONFIG_MTK_TINYSYS_SCP_DEBUG_SUPPORT)
 ssize_t scp_A_log_read(char __user *data, size_t len)
 {
 	unsigned int w_pos, r_pos, datalen;
