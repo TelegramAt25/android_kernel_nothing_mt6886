@@ -58,6 +58,8 @@
 			aee_kernel_warning_api(__FILE__, __LINE__, \
 				DB_OPT_MML_PQ, tag, fmt, ##args); \
 	} while (0)
+#else
+#define mml_pq_util_aee(module, fmt, args...)
 #endif
 
 extern int mml_pq_msg;
