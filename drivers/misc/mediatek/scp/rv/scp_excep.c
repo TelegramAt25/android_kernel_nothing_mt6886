@@ -679,6 +679,7 @@ void scp_aed(enum SCP_RESET_TYPE type, enum scp_core_id id)
 		return;
 	}
 
+#if IS_ENABLED(CONFIG_MTK_AEE_FEATURE)
 	/* wait for previous coredump complete */
 	while (1) {
 		if (aee_get_mode() == AEE_MODE_CUSTOMER_USER)
@@ -699,6 +700,7 @@ void scp_aed(enum SCP_RESET_TYPE type, enum scp_core_id id)
 			continue;
 		}
 	}
+#endif
 	if (atomic_read(&coredumping) == true)
 		pr_notice("[SCP] coredump overwrite happen\n");
 	atomic_set(&coredumping, true);
