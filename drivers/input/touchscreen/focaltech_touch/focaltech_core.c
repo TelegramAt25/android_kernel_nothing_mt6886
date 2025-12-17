@@ -534,25 +534,16 @@ static int fts_input_report_b(struct fts_ts_data *ts_data, struct ts_event *even
 
 			touch_down_point_cur |= (1 << events[i].id);
 			touch_point_pre |= (1 << events[i].id);
-
-			if ((ts_data->log_level >= 2) ||
-				((1 == ts_data->log_level) && (FTS_TOUCH_DOWN == events[i].flag))) {
-				FTS_DEBUG("[B]P%d(%d, %d)[p:%d,tm:%d] DOWN!",
-						  events[i].id, events[i].x, events[i].y,
-						  events[i].p, events[i].area);
-			}
 		} else {
 			input_mt_slot(input_dev, events[i].id);
 			input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, false);
 			touch_point_pre &= ~(1 << events[i].id);
-			if (ts_data->log_level >= 1) FTS_DEBUG("[B]P%d UP!", events[i].id);
 		}
 	}
 
 	if (unlikely(touch_point_pre ^ touch_down_point_cur)) {
 		for (i = 0; i < max_touch_num; i++)  {
 			if ((1 << i) & (touch_point_pre ^ touch_down_point_cur)) {
-				if (ts_data->log_level >= 1) FTS_DEBUG("[B]P%d UP!", i);
 				input_mt_slot(input_dev, i);
 				input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, false);
 			}
@@ -562,8 +553,6 @@ static int fts_input_report_b(struct fts_ts_data *ts_data, struct ts_event *even
 	if (touch_down_point_cur)
 		input_report_key(input_dev, BTN_TOUCH, 1);
 	else if (touch_event_coordinate || ts_data->touch_points) {
-		if (ts_data->touch_points && (ts_data->log_level >= 1))
-			FTS_DEBUG("[B]Points All Up!");
 		input_report_key(input_dev, BTN_TOUCH, 0);
 	}
 
