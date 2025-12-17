@@ -40,7 +40,6 @@ struct mdw_rv_tag {
 int mdw_rv_tag_init(void);
 void mdw_rv_tag_deinit(void);
 void mdw_rv_tag_show(struct seq_file *s);
-void mdw_cmd_trace(struct mdw_cmd *c, uint32_t status);
 #else
 static inline int mdw_rv_tag_init(void)
 {
@@ -53,10 +52,8 @@ static inline void mdw_rv_tag_deinit(void)
 static inline void mdw_rv_tag_show(struct seq_file *s)
 {
 }
-void mdw_cmd_trace(struct mdw_cmd *c, uint32_t status)
-{
-}
 #endif
+void mdw_cmd_trace(struct mdw_cmd *c, uint32_t status);
 
 #endif
 
