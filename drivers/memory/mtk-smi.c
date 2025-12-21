@@ -340,8 +340,6 @@ void mtk_smi_larb_bw_set(struct device *dev, const u32 port, const u32 val)
 	}
 	if (val) {
 		if (larb->clk_on_delay && (port == 12 || port == 13)) {
-			dev_notice(dev, "%s:Not write %#x, val=%#x\n",
-				__func__, SMI_LARB_OSTDL_PORTx(port), val);
 			return;
 		}
 		larb->larb_gen->bwl[larb->larbid * SMI_LARB_PORT_NR_MAX + port] = val;
