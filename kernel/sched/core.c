@@ -4944,7 +4944,7 @@ static inline void prepare_task(struct task_struct *next)
 #endif
 }
 
-static inline void finish_task(struct task_struct *prev)
+static __always_inline void finish_task(struct task_struct *prev)
 {
 #ifdef CONFIG_SMP
 	/*
@@ -4964,7 +4964,7 @@ static inline void finish_task(struct task_struct *prev)
 
 #ifdef CONFIG_SMP
 
-static void do_balance_callbacks(struct rq *rq, struct callback_head *head)
+static __always_inline void do_balance_callbacks(struct rq *rq, struct callback_head *head)
 {
 	void (*func)(struct rq *rq);
 	struct callback_head *next;
@@ -5000,7 +5000,7 @@ struct callback_head balance_push_callback = {
 };
 EXPORT_SYMBOL_GPL(balance_push_callback);
 
-static inline struct callback_head *
+static __always_inline struct callback_head *
 __splice_balance_callbacks(struct rq *rq, bool split)
 {
 	struct callback_head *head = rq->balance_callback;
@@ -5081,7 +5081,7 @@ prepare_lock_switch(struct rq *rq, struct task_struct *next, struct rq_flags *rf
 #endif
 }
 
-static inline void finish_lock_switch(struct rq *rq)
+static __always_inline void finish_lock_switch(struct rq *rq)
 {
 	/*
 	 * If we are tracking spinlock dependencies then we have to
@@ -5113,7 +5113,7 @@ static inline void kmap_local_sched_out(void)
 #endif
 }
 
-static inline void kmap_local_sched_in(void)
+static __always_inline void kmap_local_sched_in(void)
 {
 #ifdef CONFIG_KMAP_LOCAL
 	if (unlikely(current->kmap_ctrl.idx))
@@ -5167,7 +5167,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
  * past. prev == current is still correct but we need to recalculate this_rq
  * because prev may have moved to another CPU.
  */
-static struct rq *finish_task_switch(struct task_struct *prev)
+static __always_inline struct rq *finish_task_switch(struct task_struct *prev)
 	__releases(rq->lock)
 {
 	struct rq *rq = this_rq();
