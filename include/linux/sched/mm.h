@@ -31,14 +31,14 @@ extern struct mm_struct *mm_alloc(void);
  * See also <Documentation/vm/active_mm.rst> for an in-depth explanation
  * of &mm_struct.mm_count vs &mm_struct.mm_users.
  */
-static inline void mmgrab(struct mm_struct *mm)
+static __always_inline void mmgrab(struct mm_struct *mm)
 {
 	atomic_inc(&mm->mm_count);
 }
 
 extern void __mmdrop(struct mm_struct *mm);
 
-static inline void mmdrop(struct mm_struct *mm)
+static __always_inline void mmdrop(struct mm_struct *mm)
 {
 	/*
 	 * The implicit full barrier implied by atomic_dec_and_test() is
@@ -65,12 +65,12 @@ static inline void mmdrop(struct mm_struct *mm)
  * See also <Documentation/vm/active_mm.rst> for an in-depth explanation
  * of &mm_struct.mm_count vs &mm_struct.mm_users.
  */
-static inline void mmget(struct mm_struct *mm)
+static __always_inline void mmget(struct mm_struct *mm)
 {
 	atomic_inc(&mm->mm_users);
 }
 
-static inline bool mmget_not_zero(struct mm_struct *mm)
+static __always_inline bool mmget_not_zero(struct mm_struct *mm)
 {
 	return atomic_inc_not_zero(&mm->mm_users);
 }
@@ -353,7 +353,7 @@ enum {
 #include <asm/membarrier.h>
 #endif
 
-static inline void membarrier_mm_sync_core_before_usermode(struct mm_struct *mm)
+static __always_inline void membarrier_mm_sync_core_before_usermode(struct mm_struct *mm)
 {
 	if (current->mm != mm)
 		return;
