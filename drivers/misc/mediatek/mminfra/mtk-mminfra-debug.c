@@ -197,8 +197,6 @@ static void mminfra_cg_check(bool on)
 		/* SMI CG still off */
 		if ((con0_val & (SMI_CG_BIT)) || (con0_val & GCEM_CG_BIT) ||
 			(con0_val & GCED_CG_BIT) || (con1_val & GCE26M_CG_BIT)) {
-			pr_notice("%s cg still off, CG_CON0:0x%x CG_CON1:0x%x\n",
-						__func__, con0_val, con1_val);
 			if (con0_val & (SMI_CG_BIT))
 				mtk_smi_dbg_cg_status();
 			if ((con0_val & GCEM_CG_BIT) || (con0_val & GCED_CG_BIT)
@@ -243,13 +241,8 @@ static int mtk_mminfra_pd_callback(struct notifier_block *nb,
 		}
 		iounmap(test_base);
 		writel(0x20002, dbg->gce_base + GCE_GCTL_VALUE);
-		pr_notice("%s: enable clk ref_cnt=%d, enable gce apsrc: %#x=%#x\n",
-			__func__, count, GCE_BASE + GCE_GCTL_VALUE,
-			readl(dbg->gce_base + GCE_GCTL_VALUE));
 	} else if (flags == GENPD_NOTIFY_PRE_OFF) {
 		writel(0, dbg->gce_base + GCE_GCTL_VALUE);
-		pr_notice("%s: disable gce apsrc: %#x=%#x\n",
-			__func__, GCE_BASE + GCE_GCTL_VALUE, readl(dbg->gce_base + GCE_GCTL_VALUE));
 		test_base = ioremap(bkrs_reg_pa, 4);
 		bk_val = readl_relaxed(test_base);
 		if (mminfra_bkrs)
@@ -264,7 +257,6 @@ static int mtk_mminfra_pd_callback(struct notifier_block *nb,
 		mminfra_clk_set(false);
 		mminfra_cg_check(false);
 		count = atomic_dec_return(&clk_ref_cnt);
-		pr_notice("%s: disable clk ref_cnt=%d\n", __func__, count);
 	}
 
 	return NOTIFY_OK;
