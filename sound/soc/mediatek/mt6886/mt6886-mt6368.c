@@ -145,7 +145,7 @@ static int mt6886_mt6368_spk_amp_event(struct snd_soc_dapm_widget *w,
 	struct snd_soc_dapm_context *dapm = w->dapm;
 	struct snd_soc_card *card = dapm->card;
 
-	dev_info(card->dev, "%s(), event %d\n", __func__, event);
+	dev_dbg(card->dev, "%s(), event %d\n", __func__, event);
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
@@ -222,8 +222,6 @@ static int mt6886_mt6368_mtkaif_calibration(struct snd_soc_pcm_runtime *rtd)
 	int prev_cycle_1, prev_cycle_2, prev_cycle_3;
 	int counter;
 	int mtkaif_calib_ok;
-
-	dev_info(afe->dev, "%s(), start\n", __func__);
 
 	pm_runtime_get_sync(afe->dev);
 
@@ -367,13 +365,6 @@ static int mt6886_mt6368_mtkaif_calibration(struct snd_soc_pcm_runtime *rtd)
 				   0x1 << RG_ADDA6_MTKAIF_RX_SYNC_WORD2_DISABLE_SFT);
 
 	pm_runtime_put(afe->dev);
-
-	dev_info(afe->dev, "%s(), mtkaif_chosen_phase[0/1/2]:%d/%d/%d, miso_need_calib[%d/%d/%d]\n",
-		 __func__,
-		 afe_priv->mtkaif_chosen_phase[0],
-		 afe_priv->mtkaif_chosen_phase[1],
-		 afe_priv->mtkaif_chosen_phase[2],
-		 miso0_need_calib, miso1_need_calib, miso2_need_calib);
 #endif
 	return 0;
 }
@@ -415,8 +406,6 @@ static int mt6886_mt6368_init(struct snd_soc_pcm_runtime *rtd)
 static int mt6886_i2s_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 				      struct snd_pcm_hw_params *params)
 {
-	dev_info(rtd->dev, "%s(), fix format to 32bit\n", __func__);
-
 	/* fix BE i2s format to 32bit, clean param mask first */
 	snd_mask_reset_range(hw_param_mask(params, SNDRV_PCM_HW_PARAM_FORMAT),
 			     0, SNDRV_PCM_FORMAT_LAST);
@@ -444,7 +433,6 @@ static int mt6886_mt6368_vow_startup(struct snd_pcm_substream *substream)
 	struct mtk_base_afe *afe = snd_soc_component_get_drvdata(component);
 	int i;
 
-	dev_info(afe->dev, "%s(), start\n", __func__);
 	snd_soc_set_runtime_hwparams(substream, &mt6886_mt6368_vow_hardware);
 
 	mt6886_afe_gpio_request(afe, true, MT6886_DAI_VOW, 0);
@@ -465,7 +453,6 @@ static void mt6886_mt6368_vow_shutdown(struct snd_pcm_substream *substream)
 	struct mtk_base_afe *afe = snd_soc_component_get_drvdata(component);
 	int i;
 
-	dev_info(afe->dev, "%s(), end\n", __func__);
 	mt6886_afe_gpio_request(afe, false, MT6886_DAI_VOW, 0);
 
 	/* restore to fool ASoC */
@@ -1413,8 +1400,6 @@ static int mt6886_mt6368_dev_probe(struct platform_device *pdev)
 	int ret, i;
 	struct snd_soc_dai_link *dai_link;
 
-	dev_info(&pdev->dev, "%s() successfully start\n", __func__);
-
 	/* update speaker type */
 	ret = mtk_spk_update_info(card, pdev);
 	if (ret) {
@@ -1469,9 +1454,6 @@ static int mt6886_mt6368_dev_probe(struct platform_device *pdev)
 	if (ret)
 		dev_err(&pdev->dev, "%s snd_soc_register_card fail %d\n",
 			__func__, ret);
-	else
-		dev_info(&pdev->dev, "%s snd_soc_register_card pss %d\n",
-				__func__, ret);
 	return ret;
 }
 
