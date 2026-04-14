@@ -21,12 +21,6 @@
 #include "tfa_container.h"
 #include "config.h"
 
-#undef pr_info
-#define pr_info pr_err
-
-#undef pr_debug
-#define pr_debug pr_err
-
 #ifdef CONFIG_MTK_PLATFORM
 //#define DISABLE_TFA98XX_ALSA_SUPPORT 	1
 extern int mtk_spk_send_ipi_buf_to_dsp(void *buffer, uint32_t size);
