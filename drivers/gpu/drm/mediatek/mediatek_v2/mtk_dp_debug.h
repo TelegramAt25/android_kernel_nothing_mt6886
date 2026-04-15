@@ -18,10 +18,7 @@ void mtk_dp_debugfs_deinit(void);
 	pr_info("[DPTX][%s line:%d]"pr_fmt(fmt), __func__, __LINE__, ##arg)
 
 #define DPTXDBG(fmt, arg...)              \
-	do {                                 \
-		if (mtk_dp_debug_get())                  \
-			pr_info("[DPTX]"pr_fmt(fmt), ##arg);     \
-	} while (0)
+		pr_debug("[DPTX]"pr_fmt(fmt), ##arg);
 
 #define DPTXMSG(fmt, arg...)                                  \
 		pr_info("[DPTX]"pr_fmt(fmt), ##arg)
