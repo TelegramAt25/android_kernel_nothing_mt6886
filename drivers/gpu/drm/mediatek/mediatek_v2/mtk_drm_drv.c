@@ -102,7 +102,6 @@ static spinlock_t top_clk_lock; /* power status protection*/
 unsigned long long mutex_time_start;
 unsigned long long mutex_time_end;
 long long mutex_time_period;
-const char *mutex_locker;
 
 unsigned long long mutex_nested_time_start;
 unsigned long long mutex_nested_time_end;

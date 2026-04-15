@@ -16,7 +16,6 @@
 extern unsigned long long mutex_time_start;
 extern unsigned long long mutex_time_end;
 extern long long mutex_time_period;
-extern const char *mutex_locker;
 extern unsigned int g_trace_log;
 
 #ifndef DRM_TRACE_ID
@@ -95,46 +94,26 @@ int mtk_dprec_logger_pr(unsigned int type, char *fmt, ...);
 
 #define DDP_MUTEX_LOCK(lock, name, line)                                       \
 	do {                                                                   \
-		DDPINFO("M_LOCK:%s[%d] +\n", name, line);		   \
-		DRM_MMP_EVENT_START(mutex_lock, (unsigned long)lock,	   \
-				line);	   \
-		mtk_drm_trace_tag_begin("M_LOCK_%s", name);	\
+		DDPDBG("M_LOCK:%s[%d] +\n", name, line);		   \
 		mutex_lock(lock);		   \
-		mutex_time_start = sched_clock();		   \
-		mutex_locker = name;		   \
 	} while (0)
 
 #define DDP_MUTEX_UNLOCK(lock, name, line)                                     \
 	do {                                                                   \
-		mutex_locker = NULL;		   \
-		mutex_time_end = sched_clock();		   \
-		mutex_time_period = mutex_time_end - mutex_time_start;   \
-		if (mutex_time_period > 1000000000) {		   \
-			DDPPR_ERR("M_ULOCK:%s[%d] timeout:<%lld ns>!\n",   \
-				name, line, mutex_time_period);		   \
-			DRM_MMP_MARK(mutex_lock,		   \
-				(unsigned long)mutex_time_period, 0);   \
-			dump_stack();		   \
-		}		   \
 		mutex_unlock(lock);		   \
-		DRM_MMP_EVENT_END(mutex_lock, (unsigned long)lock,	   \
-			line);	   \
-		mtk_drm_trace_tag_end("M_LOCK_%s", name);	\
-		DDPINFO("M_ULOCK:%s[%d] -\n", name, line);		   \
+		DDPDBG("M_ULOCK:%s[%d] -\n", name, line);		   \
 	} while (0)
 
 #define DDP_MUTEX_LOCK_NESTED(lock, i, name, line)                             \
 	do {                                                                   \
-		DDPINFO("M_LOCK_NST[%d]:%s[%d] +\n", i, name, line);   \
-		mtk_drm_trace_tag_begin("M_LOCK_NST_%s", name);	\
+		DDPDBG("M_LOCK_NST[%d]:%s[%d] +\n", i, name, line);   \
 		mutex_lock_nested(lock, i);		   \
 	} while (0)
 
 #define DDP_MUTEX_UNLOCK_NESTED(lock, i, name, line)                           \
 	do {                                                                   \
 		mutex_unlock(lock);		   \
-		mtk_drm_trace_tag_end("M_LOCK_NST_%s", name);	\
-		DDPINFO("M_ULOCK_NST[%d]:%s[%d] -\n", i, name, line);	\
+		DDPDBG("M_ULOCK_NST[%d]:%s[%d] -\n", i, name, line);	\
 	} while (0)
 
 #if IS_ENABLED(CONFIG_MTK_AEE_FEATURE)
