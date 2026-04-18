@@ -242,8 +242,6 @@ static irqreturn_t mtk_wdma_irq_handler(int irq, void *dev_id)
 	struct mtk_ddp_comp *wdma = NULL;
 	struct mtk_cwb_info *cwb_info = NULL;
 	struct mtk_drm_private *drm_priv = NULL;
-	static unsigned long long underrun_old_ts;
-	unsigned long long underrun_new_ts = 0;
 	unsigned int buf_idx;
 	unsigned int val = 0;
 	unsigned int ret = 0;
@@ -307,15 +305,6 @@ static irqreturn_t mtk_wdma_irq_handler(int irq, void *dev_id)
 	if (val & (1 << 1)) {
 		DDPPR_ERR("[IRQ] %s: frame underrun!\n",
 			  mtk_dump_comp_str(wdma));
-		underrun_new_ts = sched_clock();
-		if (&(wdma->mtk_crtc->base)
-			&& (underrun_new_ts - underrun_old_ts > 1000*1000*1000)) { //1s
-			mtk_drm_crtc_analysis(&(wdma->mtk_crtc->base));
-			mtk_drm_crtc_dump(&(wdma->mtk_crtc->base));
-			DDPMSG("new: %llu, old: %llu", underrun_new_ts, underrun_old_ts);
-			underrun_old_ts = underrun_new_ts;
-			mtk_smi_dbg_hang_detect("wdma-underrun");
-		}
 	}
 
 	ret = IRQ_HANDLED;

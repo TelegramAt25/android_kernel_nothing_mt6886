@@ -103,9 +103,6 @@ unsigned long long mutex_time_start;
 unsigned long long mutex_time_end;
 long long mutex_time_period;
 
-unsigned long long mutex_nested_time_start;
-unsigned long long mutex_nested_time_end;
-long long mutex_nested_time_period;
 const char *mutex_nested_locker;
 static int aod_scp_flag;
 static unsigned int g_disp_plat_dbg_addr;
@@ -1882,7 +1879,6 @@ static int mtk_atomic_commit(struct drm_device *drm,
 		CRTC_MMP_EVENT_START((int)drm_crtc_index(crtc), atomic_commit, 0, 0);
 		drm_trace_tag_mark_bycrtc("atomic_commit", drm_crtc_index(crtc));
 	}
-	mutex_nested_time_start = sched_clock();
 
 	ret = drm_atomic_helper_swap_state(state, 0);
 	if (ret) {
@@ -1901,16 +1897,6 @@ static int mtk_atomic_commit(struct drm_device *drm,
 		mtk_atomic_complete(private, state);
 #endif
 	mtk_atomic_complete(private, state);
-
-	mutex_nested_time_end = sched_clock();
-	mutex_nested_time_period =
-			mutex_nested_time_end - mutex_nested_time_start;
-	if (mutex_nested_time_period > 1000000000) {
-		DDPPR_ERR("M_ULOCK_NESTED:%s[%d] timeout:<%lld ns>!\n",
-			__func__, __LINE__, mutex_nested_time_period);
-		DRM_MMP_MARK(mutex_lock, (unsigned long)mutex_time_period, 0);
-		dump_stack();
-	}
 
 mutex_unlock:
 	for (i = MAX_CRTC - 1; i >= 0; i--) {
@@ -5157,7 +5143,6 @@ unsigned int lcm_fps_ctx_get(unsigned int crtc_id)
 	unsigned int index = crtc_id;
 	unsigned int fps_num = 0;
 	unsigned long long fps_array[LCM_FPS_ARRAY_SIZE] = {0};
-	unsigned long long start_time = 0, diff = 0;
 
 	if (crtc_id >= MAX_CRTC) {
 		DDPPR_ERR("%s:invalid crtc:%u\n",
@@ -5168,7 +5153,6 @@ unsigned int lcm_fps_ctx_get(unsigned int crtc_id)
 	if (!atomic_read(&lcm_fps_ctx[index].is_inited))
 		return 0;
 
-	start_time = sched_clock();
 	spin_lock_irqsave(&lcm_fps_ctx[index].lock, flags);
 
 	if (atomic_read(&lcm_fps_ctx[index].skip_update) &&
@@ -5191,9 +5175,6 @@ unsigned int lcm_fps_ctx_get(unsigned int crtc_id)
 	memcpy(fps_array, lcm_fps_ctx[index].array, sizeof(fps_array));
 
 	spin_unlock_irqrestore(&lcm_fps_ctx[index].lock, flags);
-	diff = sched_clock() - start_time;
-	if (diff > 1000000)
-		DDPMSG("%s diff = %llu, > 1 ms\n", __func__, diff);
 
 	for (i = 0; i < fps_num; i++) {
 		duration_sum += fps_array[i];
