@@ -6729,14 +6729,13 @@ static ktime_t mtk_check_preset_fence_timestamp(struct drm_crtc *crtc)
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	unsigned int vrefresh = 0;
 	bool is_frame_mode;
-	ktime_t cur_time, diff_time, prev_time;
-	ktime_t start_time, wait_time;
+	ktime_t cur_time, diff_time;
+	ktime_t start_time;
 	bool pass = false;
 	unsigned long flags;
 
 	is_frame_mode = mtk_crtc_is_frame_trigger_mode(crtc);
 	cur_time = mtk_crtc->pf_time;
-	prev_time = mtk_crtc->prev_pf_time;
 
 	if (id == 0) {
 		vrefresh = drm_mode_vrefresh(&crtc->state->adjusted_mode);
@@ -6767,17 +6766,7 @@ static ktime_t mtk_check_preset_fence_timestamp(struct drm_crtc *crtc)
 			spin_unlock_irqrestore(&mtk_crtc->pf_time_lock, flags);
 
 		} while (!pass && is_frame_mode);
-
-		wait_time = ktime_get();
-
-		if (((wait_time - start_time) / 1000000) > (1000 / vrefresh / 2)) {
-			DDPINFO("Wait time over %d ms, start %lld, wait %lld, cur %lld\n",
-				(1000 / vrefresh / 2), start_time, wait_time, cur_time);
-			CRTC_MMP_MARK(id, present_fence_timestamp, start_time, wait_time);
-		}
 	}
-	if (cur_time == prev_time)
-		DDPMSG("%s:The present fence timestamp still same.\n", __func__);
 	mtk_crtc->prev_pf_time = cur_time;
 
 	return cur_time;
@@ -14377,7 +14366,6 @@ static int mtk_drm_cwb_copy_buf(struct drm_crtc *crtc,
 	struct drm_framebuffer *fb = cwb_info->buffer[0].fb;
 	int Bpp = mtk_get_format_bpp(fb->format->format);
 	int width, height, pitch, size;
-	unsigned long long time = sched_clock();
 
 	//double confirm user_buffer still exists
 	if (!cwb_info->funcs || !cwb_info->funcs->get_buffer) {
@@ -14405,8 +14393,8 @@ static int mtk_drm_cwb_copy_buf(struct drm_crtc *crtc,
 		tmp->meta.timestamp = cwb_info->buffer[buf_idx].timestamp;
 		memcpy(tmp->data.image, (void *)addr_va, size);
 	}
-	DDPMSG("[capture] copy buf from 0x%x, (w,h)=(%d,%d), ts:%llu done\n",
-			addr_va, width, height, time);
+	DDPMSG("[capture] copy buf from 0x%x, (w,h)=(%d,%d) done\n",
+			addr_va, width, height);
 
 	return 0;
 }
