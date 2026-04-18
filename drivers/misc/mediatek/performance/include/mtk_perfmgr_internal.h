@@ -21,8 +21,10 @@ static const struct proc_ops perfmgr_ ## name ## _proc_fops = { \
 }
 
 #define PROC_ENTRY(name) {__stringify(name), &perfmgr_ ## name ## _proc_fops}
+#ifndef MIN
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
 #define for_each_perfmgr_clusters(i)	\
 	for (i = 0; i < clstr_num; i++)
 

@@ -28,6 +28,7 @@
 
 #include <linux/version.h>
 
+#ifndef MIN
 /**
  * MIN - Return the lesser of two values.
  * @x: value1
@@ -51,6 +52,7 @@
  * instead.
  */
 #define MAX(x, y)	((x) < (y) ? (y) : (x))
+#endif
 
 /**
  * Function-like macro for suppressing unused variable warnings.
