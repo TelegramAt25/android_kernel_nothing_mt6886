@@ -15751,15 +15751,11 @@ static irqreturn_t mtk_disp_mutex_irq_handler(int irq, void *dev_id)
 	unsigned int val = 0;
 	unsigned int m_id = 0;
 	int ret = 0;
-	unsigned long long irq_debug[11] = {0};
-	static DEFINE_RATELIMIT_STATE(irq_ratelimit, 5 * HZ, 1);
 	struct mtk_drm_private *priv = ddp->mtk_crtc[0]->base.dev->dev_private;
 	struct mtk_drm_crtc *mtk_crtc0 = ddp->mtk_crtc[0];
 	struct mtk_drm_crtc *mtk_crtc = NULL;
 	int crtc_index = -1;
 	int i;
-
-	irq_debug[0] = sched_clock();
 
 	if (mtk_drm_top_clk_isr_get("mutex_irq") == false) {
 		DDPIRQ("%s, top clk off\n", __func__);
@@ -15796,10 +15792,8 @@ static irqreturn_t mtk_disp_mutex_irq_handler(int irq, void *dev_id)
 					break;
 				}
 			}
-			irq_debug[1] = sched_clock();
 			if (mtk_crtc && drm_crtc_index(&mtk_crtc->base) == 0)
 				disp_c3d_on_end_of_frame_mutex();
-			irq_debug[2] = sched_clock();
 #endif
 		}
 		if (val & (0x1 << m_id)) {
@@ -15818,9 +15812,7 @@ static irqreturn_t mtk_disp_mutex_irq_handler(int irq, void *dev_id)
 				mtk_wakeup_pf_wq(m_id);
 			}
 			if (disp_helper_get_stage() == DISP_HELPER_STAGE_NORMAL) {
-				irq_debug[3] = sched_clock();
 				mtk_drm_cwb_backup_copy_size();
-				irq_debug[4] = sched_clock();
 			}
 
 #ifndef DRM_BYPASS_PQ
@@ -15834,38 +15826,18 @@ static irqreturn_t mtk_disp_mutex_irq_handler(int irq, void *dev_id)
 			if (mtk_crtc)
 				crtc_index = drm_crtc_index(&mtk_crtc->base);
 			/* oddmr should be first */
-			irq_debug[5] = sched_clock();
 			if (crtc_index == 0)
 				disp_oddmr_on_start_of_frame();
-			irq_debug[6] = sched_clock();
 			if (crtc_index == 0)
 				disp_aal_on_start_of_frame();
-			irq_debug[7] = sched_clock();
 			if (crtc_index == 0)
 				disp_c3d_on_start_of_frame();
-			irq_debug[8] = sched_clock();
 			if (crtc_index == 0)
 				disp_gamma_on_start_of_frame();
-			irq_debug[9] = sched_clock();
 			if (crtc_index == 0)
 				disp_ccorr_on_start_of_frame();
-			irq_debug[10] = sched_clock();
 #endif
 		}
-	}
-
-	if (((sched_clock() - irq_debug[0]) > 5000000) &&
-			__ratelimit(&irq_ratelimit)) {
-		DDPMSG("%s > 850 us, %llu %llu %llu %llu %llu %llu %llu\n",
-			__func__,
-			(irq_debug[2] - irq_debug[1]),
-			(irq_debug[4] - irq_debug[3]),
-			(irq_debug[6] - irq_debug[5]),
-			(irq_debug[7] - irq_debug[6]),
-			(irq_debug[8] - irq_debug[7]),
-			(irq_debug[9] - irq_debug[8]),
-			(irq_debug[10] - irq_debug[9])
-			);
 	}
 
 	ret = IRQ_HANDLED;

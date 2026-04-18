@@ -1051,13 +1051,11 @@ static void mtk_disp_c3d_stop(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle
 static void mtk_disp_c3d_prepare(struct mtk_ddp_comp *comp)
 {
 	struct mtk_disp_c3d *priv = dev_get_drvdata(comp->dev);
-	unsigned long long time[2] = {0};
 	// create cmdq_pkt
 	struct mtk_drm_crtc *mtk_crtc = comp->mtk_crtc;
 	struct drm_crtc *crtc = &mtk_crtc->base;
 
 	g_c3d_data->crtc = crtc;
-	time[0] = sched_clock();
 
 	mtk_ddp_comp_clk_prepare(comp);
 	atomic_set(&g_c3d_is_clock_on[index_of_c3d(comp->id)], 1);
@@ -1074,9 +1072,6 @@ static void mtk_disp_c3d_prepare(struct mtk_ddp_comp *comp)
 	} else
 		ddp_c3d_sram_write_table(comp);
 	mutex_unlock(&c3d_lut_lock);
-
-	time[1] = sched_clock();
-	C3DFLOW_LOG("compID:%d, timediff: %llu\n", comp->id, time[1] - time[0]);
 }
 
 static void mtk_disp_c3d_unprepare(struct mtk_ddp_comp *comp)
