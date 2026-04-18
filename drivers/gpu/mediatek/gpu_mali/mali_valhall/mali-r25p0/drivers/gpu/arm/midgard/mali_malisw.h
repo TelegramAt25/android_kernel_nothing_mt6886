@@ -46,6 +46,7 @@
 #define SIZE_MAX        (~(size_t)0)
 #endif /* LINUX_VERSION_CODE */
 
+#ifndef MIN
 /**
  * MIN - Return the lesser of two values.
  *
@@ -65,6 +66,7 @@
  * instead.
  */
 #define MAX(x, y)	((x) < (y) ? (y) : (x))
+#endif
 
 /**
  * @hideinitializer

@@ -21,9 +21,10 @@
 
 /*--------------------------------------------*/
 
+#ifndef MIN
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
+#endif
 
 struct FBT_CPU_CTRL_NOTIFIER_PUSH_TAG {
 	int policy_id;
