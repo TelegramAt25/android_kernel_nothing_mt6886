@@ -182,28 +182,8 @@ void _dev_info(const struct device *dev, const char *fmt, ...)
 	dev_printk_index_wrap(_dev_info, KERN_INFO, dev, dev_fmt(fmt), ##__VA_ARGS__)
 #endif
 
-#if defined(CONFIG_DYNAMIC_DEBUG) || \
-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
-
-#if defined(CONFIG_MTK_PRINTK_DEBUG)
-#define dev_dbg(dev, fmt, ...)						\
-	dynamic_dev_dbg(dev, mtk_dev_fmt(fmt), ##__VA_ARGS__)
-#else
-#define dev_dbg(dev, fmt, ...)						\
-	dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
-#endif
-#elif defined(DEBUG)
-#if defined(CONFIG_MTK_PRINTK_DEBUG)
-#define dev_dbg(dev, fmt, ...)						\
-	dev_printk(KERN_DEBUG, dev, mtk_dev_fmt(fmt), ##__VA_ARGS__)
-#else
-#define dev_dbg(dev, fmt, ...)						\
-	dev_printk(KERN_DEBUG, dev, dev_fmt(fmt), ##__VA_ARGS__)
-#endif
-#else
 #define dev_dbg(dev, fmt, ...)						\
 	dev_no_printk(KERN_DEBUG, dev, dev_fmt(fmt), ##__VA_ARGS__)
-#endif
 
 #ifdef CONFIG_PRINTK
 #define dev_level_once(dev_level, dev, fmt, ...)			\
@@ -263,33 +243,8 @@ do {									\
 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
 #define dev_info_ratelimited(dev, fmt, ...)				\
 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
-#if defined(CONFIG_DYNAMIC_DEBUG) || \
-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
-/* descriptor check is first to prevent flooding with "callbacks suppressed" */
-#define dev_dbg_ratelimited(dev, fmt, ...)				\
-do {									\
-	static DEFINE_RATELIMIT_STATE(_rs,				\
-				      DEFAULT_RATELIMIT_INTERVAL,	\
-				      DEFAULT_RATELIMIT_BURST);		\
-	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-	if (DYNAMIC_DEBUG_BRANCH(descriptor) &&				\
-	    __ratelimit(&_rs))						\
-		__dynamic_dev_dbg(&descriptor, dev, dev_fmt(fmt),	\
-				  ##__VA_ARGS__);			\
-} while (0)
-#elif defined(DEBUG)
-#define dev_dbg_ratelimited(dev, fmt, ...)				\
-do {									\
-	static DEFINE_RATELIMIT_STATE(_rs,				\
-				      DEFAULT_RATELIMIT_INTERVAL,	\
-				      DEFAULT_RATELIMIT_BURST);		\
-	if (__ratelimit(&_rs))						\
-		dev_printk(KERN_DEBUG, dev, dev_fmt(fmt), ##__VA_ARGS__); \
-} while (0)
-#else
 #define dev_dbg_ratelimited(dev, fmt, ...)				\
 	dev_no_printk(KERN_DEBUG, dev, dev_fmt(fmt), ##__VA_ARGS__)
-#endif
 
 #ifdef VERBOSE_DEBUG
 #define dev_vdbg	dev_dbg
