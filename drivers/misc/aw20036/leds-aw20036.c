@@ -279,8 +279,6 @@ static void aw20036_brightness_work(struct work_struct *work)
 	struct aw20036 *aw20036 = container_of(work, struct aw20036,
 					       brightness_work);
 
-	pr_info("%s: enter\n", __func__);
-
 	if (aw20036->cdev.brightness > aw20036->cdev.max_brightness)
 		aw20036->cdev.brightness = aw20036->cdev.max_brightness;
 
@@ -334,8 +332,6 @@ static void aw20036_update_cfg_array(struct aw20036 *aw20036,
 
 static int aw20036_cfg_update_array(struct aw20036 *aw20036)
 {
-	pr_info("%s: enter\n", __func__);
-
 	aw20036_update_cfg_array(aw20036,
 				(aw20036_cfg_array[aw20036->effect].p),
 				aw20036_cfg_array[aw20036->effect].count);
@@ -353,18 +349,12 @@ static void aw20036_cfg_loaded(const struct firmware *cont, void *context)
 	unsigned char reg_addr = 0;
 	unsigned char reg_val = 0;
 
-	pr_info("%s: enter\n", __func__);
-
 	if (!cont) {
-		pr_info("%s: failed to read %s\n", __func__,
-			aw20036_cfg_name[aw20036->effect]);
 		release_firmware(cont);
 		return;
 	}
 
 	mutex_lock(&aw20036->cfg_lock);
-	pr_info("%s: loaded %s - size: %zu\n", __func__,
-		aw20036_cfg_name[aw20036->effect], cont ? cont->size : 0);
 
 	for (i = 0; i < cont->size; i += 2) {
 		if (*(cont->data + i) == 0xf0)
@@ -372,8 +362,6 @@ static void aw20036_cfg_loaded(const struct firmware *cont, void *context)
 
 		aw20036_i2c_write(aw20036, *(cont->data + i),
 			*(cont->data + i + 1));
-		pr_debug("%s: addr:0x%02x, data:0x%02x\n", __func__,
-			*(cont->data + i), *(cont->data + i + 1));
 
 		if (page == AW20036_REG_PAGE0) {
 			reg_addr = *(cont->data + i);
@@ -386,20 +374,13 @@ static void aw20036_cfg_loaded(const struct firmware *cont, void *context)
 
 	release_firmware(cont);
 	mutex_unlock(&aw20036->cfg_lock);
-	pr_info("%s: cfg update complete\n", __func__);
 }
 
 static int aw20036_cfg_update(struct aw20036 *aw20036)
 {
-	int ret;
+	int ret = 0;
 
-	pr_info("%s: enter\n", __func__);
-	ret = 0;
-
-	if (aw20036->effect < (sizeof(aw20036_cfg_name) / AW20036_CFG_NAME_MAX)) {
-		pr_info("%s: cfg name=%s\n", __func__,
-			aw20036_cfg_name[aw20036->effect]);
-	} else {
+	if (aw20036->effect >= (sizeof(aw20036_cfg_name) / AW20036_CFG_NAME_MAX)) {
 		pr_err("%s: effect 0x%02x over s value\n", __func__,
 			aw20036->effect);
 		return (-1);
@@ -441,10 +422,8 @@ static int aw20036_rgbcolor_config(struct aw20036 *aw20036)
 	}
 
 	if (strncmp(dev_color, "BLACK", 5) == 0) {
-		pr_info("%s: device dim for black\n", __func__);
 		ret = aw20036_i2c_write_block(aw20036, 0x00, 36, aw20036_rgb_color_cfg_black);
 	} else {
-		pr_info("%s: device dim for white\n", __func__);
 		ret = aw20036_i2c_write_block(aw20036, 0x00, 36, aw20036_rgb_color_cfg_white);
 	}
 
@@ -457,8 +436,6 @@ static int aw20036_rgbcolor_config(struct aw20036 *aw20036)
 
 static int aw20036_hw_reset(struct aw20036 *aw20036)
 {
-	pr_info("%s: enter\n", __func__);
-
 	if (aw20036 && gpio_is_valid(aw20036->reset_gpio)) {
 		gpio_set_value_cansleep(aw20036->reset_gpio, 0);
 		msleep(1);
@@ -468,15 +445,11 @@ static int aw20036_hw_reset(struct aw20036 *aw20036)
 		dev_err(aw20036->dev, "%s:  failed\n", __func__);
 	}
 
-	pr_info("%s: enter out\n", __func__);
-
 	return 0;
 }
 
 static int aw20036_hw_off(struct aw20036 *aw20036)
 {
-	pr_info("%s: enter\n", __func__);
-
 	if (aw20036 && gpio_is_valid(aw20036->reset_gpio)) {
 		gpio_set_value_cansleep(aw20036->reset_gpio, 0);
 		msleep(1);
@@ -494,15 +467,12 @@ static int aw20036_hw_off(struct aw20036 *aw20036)
  ******************************************************/
 static int aw20036_led_init(struct aw20036 *aw20036)
 {
-	pr_info("%s: enter\n", __func__);
-
 	aw20036_reg_page_cfg(aw20036, AW20036_REG_PAGE0);
 	aw20036_i2c_write(aw20036, 0x02, 0x01);
 	usleep_range(2000, 2500);
 
 	//set imax
 	if (strncmp(dev_color, "BLACK", 5) == 0) {
-		pr_info("%s: device color is BLACK\n", __func__);
 		aw20036_imax_cfg(aw20036, 0x06);
 	} else {
 		aw20036_imax_cfg(aw20036, 0x05);
@@ -623,8 +593,6 @@ static void aw20036_breath_pattern_0(struct aw20036 *aw20036,  unsigned char *da
 	unsigned char allON = 0x3F;
 	unsigned int i;
 
-	pr_info("%s\n", __func__);
-
 	T1 = data[0];
 	T2 = data[1];
 	T3 = data[2];
@@ -696,8 +664,6 @@ static void aw20036_breath_pattern_1(struct aw20036 *aw20036, unsigned char *dat
 	unsigned char led0, led1, led2, led3, led4, led5, ledOn;
 	unsigned char allON = 0x3F;
 	unsigned int i;
-
-	pr_info("%s\n", __func__);
 
 	T1 = data[0];
 	T2 = data[1];
@@ -771,8 +737,6 @@ static void aw20036_breath_pattern_2(struct aw20036 *aw20036,  unsigned char *da
 	unsigned char led0, led1, led2, led3, led4, led5, ledOn;
 	unsigned char allON = 0x3F;
 	unsigned int i;
-
-	pr_info("%s\n", __func__);
 
 	T1 = data[0];
 	T2 = data[1];
@@ -1034,7 +998,6 @@ static ssize_t aw20036_all_white_brightness_store(struct device *dev,
 	unsigned char data_2[22];
 
 	sscanf(buf, "%d", &val);
-	pr_info("%s: %d\n", __func__, val);
 
 	for (i = 0; i < 14; i ++) {data_1[i] = val;}
 	for (i = 0; i < 22; i ++) {data_2[i] = val;}
@@ -1065,7 +1028,6 @@ static ssize_t aw20036_all_brightness_store(struct device *dev,
 	unsigned char data[36];
 
 	sscanf(buf, "%d", &val);
-	pr_info("%s: %d\n", __func__, val);
 
 #ifdef POWER_SAVE_MODE
 	if (val > 0) {
@@ -1128,8 +1090,6 @@ static ssize_t aw20036_frame_brightness_store(struct device *dev,
 		}
 		frame_num ++;
 	}
-
-	pr_info("%s frame_num %d\n", __func__, frame_num);
 
 	if (frame_num == 5) {
 		//int led0[2] = {12,0};
@@ -1236,7 +1196,6 @@ static ssize_t aw20036_operating_mode_store(struct device *dev,
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
 	sscanf(buf, "%d", &val);
-	pr_info("%s: %d\n", __func__, val);
 	if (val == 1) {/*active*/
 		if (aw20036->operating_mode == 0) {
 			aw20036_hw_reset(aw20036);
@@ -1272,8 +1231,6 @@ static ssize_t aw20036_operating_mode_store(struct device *dev,
 static ssize_t aw20036_hwid_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
-	pr_info("%s\n", __func__);
-
 	return sprintf(buf, "%s\n", hw_ver);
 }
 
@@ -1283,8 +1240,6 @@ static ssize_t aw20036_hwid_store(struct device *dev,
 {
 	//struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	//struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
-
-	pr_info("%s %s %d\n", __func__, buf, len);
 
 	if (len > sizeof(hw_ver)) {
 		pr_info("%s: invalid hwid \n", __func__);
@@ -1320,8 +1275,6 @@ static ssize_t aw20036_hwid_store(struct device *dev,
 static ssize_t aw20036_dev_color_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
-	pr_info("%s\n", __func__);
-
 	return sprintf(buf, "%s\n", dev_color);
 }
 
@@ -1331,8 +1284,6 @@ static ssize_t aw20036_dev_color_store(struct device *dev,
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
-
-	pr_info("%s %s %d\n", __func__, buf, len);
 
 	if (len > sizeof(dev_color)) {
 		pr_info("%s: invalid hwid \n", __func__);
@@ -1358,8 +1309,6 @@ int factory_led1=0, factory_led2=0, factory_led3=0, factory_led4=0, factory_led5
 static ssize_t aw20036_factory_test_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
-	pr_info("%s\n", __func__);
-
 	return sprintf(buf, "%d %d %d %d %d\n", factory_led1, factory_led2, factory_led3, factory_led4, factory_led5);
 }
 
@@ -1420,8 +1369,6 @@ static ssize_t aw20036_factory_test_store(struct device *dev,
 	//int led3[10] = {8, 9, 10, 11, 21, 22, 23, 32, 34, 35};
 	//int led4 = 8;
 	int ret = 0;
-
-	pr_info("%s enter\n", __func__);
 
 	if (sscanf(buf, "%d %d %d %d %d",
 		&r_cam_leds_br, &f_cam_led_br, &round_leds_br, &vline_leds_br, &red_led_br) == 5) {
@@ -1529,10 +1476,7 @@ static ssize_t aw20036_factory_test_store(struct device *dev,
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 	int state, id;
 
-	pr_info("%s\n", __func__);
-
 	if (sscanf(buf, "%d %d", &state, &id) == 2) {
-		pr_info("%s state:%d, id:%d\n", __func__, state, id);
 		if (aw20036->vip_notification != state) {
 			if (state == 1) {
 				atomic_set(&aw20036->breath_config, 0);
@@ -1542,14 +1486,12 @@ static ssize_t aw20036_factory_test_store(struct device *dev,
 			} else if (state == 0) {
 				aw20036->vip_notification = 0;
 				if (atomic_read(&aw20036->breath_config) == 0) {
-					pr_info("%s breath_config 0\n", __func__);
 					wait_for_completion(&aw20036->completion);
 				}
 				aw20036_reg_page_cfg(aw20036, AW20036_REG_PAGE0);
 				aw20036_i2c_write(aw20036, REG_PATE, 0x00); //set pattern disable
 				aw20036_i2c_write(aw20036, REG_PATGO, 0x00); //set run disable
 				aw20036_i2c_write_bits(aw20036, REG_GCCR, BIT_ALLON_MASK, BIT_GCR_ALLON_ENABLE);
-				pr_info("%s state:%d end\n", __func__, state);
 			}
 		}
 	}
@@ -1563,8 +1505,6 @@ static ssize_t aw20036_always_on_show(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	pr_info("%s aw20036->always_on:%d\n", __func__, aw20036->always_on);
-
 	return sprintf(buf, "%d\n", aw20036->always_on);
 }
 
@@ -1577,8 +1517,6 @@ static ssize_t aw20036_always_on_store(struct device *dev,
 	unsigned int val;
 
 	sscanf(buf, "%d", &val);
-
-	pr_info("%s val:%d\n", __func__, val);
 
 	aw20036->always_on = val;
 
@@ -1628,8 +1566,6 @@ static int aw20036_init_led_cdev(struct aw20036 *aw20036,
 	struct device_node *temp;
 	int ret = -1;
 
-	pr_info("%s: enter\n", __func__);
-
 	for_each_child_of_node(np, temp) {
 		ret = of_property_read_string(temp, "aw20036,name",
 					&aw20036->cdev.name);
@@ -1675,7 +1611,6 @@ static int aw20036_init_led_cdev(struct aw20036 *aw20036,
 		dev_err(aw20036->dev, "unable to register led ret=%d\n", ret);
 		goto free_pdata;
 	}
-	pr_info("%s: sysfs_create_group\n", __func__);
 
 	ret = sysfs_create_group(&aw20036->cdev.dev->kobj,
 			&aw20036_attribute_group);
@@ -1704,8 +1639,6 @@ static void aw20036_vip_notification_work(struct work_struct *work)
 	struct aw20036_breath_group breath_effect[]= {
 		{pat0_0, pat1_0, pat2_0}
 	};
-
-	pr_info("%s\n", __func__);
 
 	pm_stay_awake(aw20036->dev);
 	if (aw20036->vip_notification_id > (sizeof(breath_effect)/sizeof(breath_effect[0])-1)) {
@@ -1752,7 +1685,6 @@ static void aw20036_vip_notification_work(struct work_struct *work)
 		complete(&aw20036->completion);
 	} else {
 		atomic_set(&aw20036->breath_config, 1);
-		pr_info("%s complete ", __func__);
 	}
 end:
 	pm_relax(aw20036->dev);
@@ -1783,8 +1715,6 @@ static void aw20036_leds_effect_work(struct work_struct *work)
 	int led2[21] = {2, 3, 4, 5, 6, 7, 8, 14, 15, 16, 17, 18, 19, 20, 26, 27, 28, 29, 30, 31, 32};
 	int led3[8] = {21, 33, 10, 22, 34, 11, 23, 35};
 	int led_26[26] = {0, 12, 24, 1, 13, 25, 2, 14, 26, 3, 15, 27, 4, 16, 28, 5, 17, 29, 6, 18, 30, 7, 19, 31, 33, 20};
-
-	pr_info("%s vip %d fact %d always %d\n", __func__, aw20036->vip_notification, aw20036->factory_test, aw20036->always_on);
 
 	pm_stay_awake(aw20036->dev);
 	aw20036->curr_buf = aw20036->start_buf;
@@ -1941,37 +1871,19 @@ static void aw20036_leds_effect_work(struct work_struct *work)
 	pm_relax(aw20036->dev);
 }
 
-static int justOpenOnce = 0;
 static int aw20036_open(struct inode *inode, struct file *filp)
 {
-	pr_info("enter\n");
-
-	if (justOpenOnce == 0) {
-		justOpenOnce++;
-	} else {
-		pr_info("%s err\n", __func__);
-	}
-
 	return 0;
 
 }
 static int aw20036_release(struct inode *inode, struct file *filp)
 {
-	if (justOpenOnce > 0) {
-		pr_info("Now the led_strips has been closed!\n");
-		justOpenOnce = 0;
-	} else {
-		pr_info("The the led_strips has already been closed!\n");
-	}
-
 	return 0;
 }
 
 static ssize_t aw20036_read(struct file *file, char __user *user, size_t size,loff_t *ppos)
 {
 	int ret =0;
-
-	pr_info("%s\n", __func__);
 
 	if (size != 1)
 		return -EINVAL;
@@ -2055,7 +1967,6 @@ static unsigned int aw20036_poll(struct file *file, poll_table *wait)
 {
 	unsigned int mask = 0;
 
-	pr_info("%s\n", __func__);
 	poll_wait(file, &aw20036_waitq, wait);
 	if (ev_happen == 1) {
 		mask |= POLLIN | POLLRDNORM;
@@ -2147,8 +2058,6 @@ static int aw20036_i2c_probe(struct i2c_client *i2c,
 	struct device_node *np = i2c->dev.of_node;
 	int ret;
 	int irq_flags;
-
-	pr_info("%s: enter\n", __func__);
 
 	if (!i2c_check_functionality(i2c->adapter, I2C_FUNC_I2C)) {
 		dev_err(&i2c->dev, "check_functionality failed\n");
@@ -2305,8 +2214,6 @@ static int aw20036_i2c_remove(struct i2c_client *i2c)
 {
 	struct aw20036 *aw20036 = i2c_get_clientdata(i2c);
 
-	pr_info("%s enter\n", __func__);
-
 	sysfs_remove_group(&aw20036->cdev.dev->kobj, &aw20036_attribute_group);
 	led_classdev_unregister(&aw20036->cdev);
 
@@ -2330,10 +2237,7 @@ static int aw20036_suspend(struct device *dev)
 {
 	struct aw20036 *aw20036 = dev_get_drvdata(dev);
 
-	pr_info("%s vip %d fact %d always %d\n", __func__, aw20036->vip_notification, aw20036->factory_test, aw20036->always_on);
-
 	if ((aw20036->vip_notification != 1) && (aw20036->factory_test != 1) && (aw20036->always_on != 1)) {
-		pr_info("%s goto suspend\n", __func__);
 		aw20036_hw_off(aw20036);
 		aw20036->operating_mode =0;
 		aw20036->suspend =1;
@@ -2344,8 +2248,6 @@ static int aw20036_suspend(struct device *dev)
 static int aw20036_resume(struct device *dev)
 {
 	struct aw20036 *aw20036 = dev_get_drvdata(dev);
-
-	pr_info("%s suspend %d\n", __func__, aw20036->suspend);
 
 	if (aw20036->suspend == 1) {
 		pr_info("%s is suspend\n", __func__);
