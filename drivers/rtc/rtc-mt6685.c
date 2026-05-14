@@ -172,7 +172,7 @@ static int rtc_field_read(struct mt6685_rtc *rtc,
 	orig >>= field->lsb;
 	*val = orig;
 
-	dev_notice(rtc->rtc_dev->dev.parent, "%s: rg:0x%x, val:0x%x\n",
+	dev_dbg(rtc->rtc_dev->dev.parent, "%s: rg:0x%x, val:0x%x\n",
 		__func__, field->reg, *val);
 
 	return 0;
