@@ -93,8 +93,6 @@ static DEFINE_SPINLOCK(lock);
 struct task_struct *wk_tsk[16] = { 0 };	/* max cpu 16 */
 static unsigned int wk_tsk_bind[16] = { 0 };	/* max cpu 16 */
 static unsigned long long wk_tsk_bind_time[16] = { 0 };	/* max cpu 16 */
-static unsigned long long wk_tsk_kick_time[16] = { 0 };	/* max cpu 16 */
-static char wk_tsk_buf[128] = { 0 };
 static unsigned long kick_bit;
 static int g_kinterval = -1;
 static struct work_struct wdk_work;
@@ -257,16 +255,15 @@ void tick_broadcast_mtk_aee_dump(void)
 
 void dump_wdk_bind_info(bool to_aee_sram)
 {
-	int i = 0;
-
-	snprintf(wk_tsk_buf, sizeof(wk_tsk_buf),
-		"kick=0x%x,check=0x%x\n",
-		get_kick_bit(), get_check_bit());
-
 #if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 	aee_rr_rec_kick(('D' << 24) | get_kick_bit());
 	aee_rr_rec_check(('B' << 24) | get_check_bit());
 #endif
+
+#if 0
+	snprintf(wk_tsk_buf, sizeof(wk_tsk_buf),
+		"kick=0x%x,check=0x%x\n",
+		get_kick_bit(), get_check_bit());
 
 	pr_info("%s", wk_tsk_buf);
 #if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
@@ -279,10 +276,9 @@ void dump_wdk_bind_info(bool to_aee_sram)
 		if (wk_tsk[i] != NULL) {
 			memset(wk_tsk_buf, 0, sizeof(wk_tsk_buf));
 			snprintf(wk_tsk_buf, sizeof(wk_tsk_buf),
-				"[wdk]CPU %d, %d, %lld, %d, %u, %lld\n",
+				"[wdk]CPU %d, %d, %lld, %d, %u\n",
 				i, wk_tsk_bind[i], wk_tsk_bind_time[i],
-				wk_tsk[i]->on_rq, wk_tsk[i]->__state,
-				wk_tsk_kick_time[i]);
+				wk_tsk[i]->on_rq, wk_tsk[i]->__state);
 #if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 			if (to_aee_sram)
 				aee_sram_fiq_log(wk_tsk_buf);
@@ -294,6 +290,7 @@ void dump_wdk_bind_info(bool to_aee_sram)
 #if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 	if (to_aee_sram)
 		aee_sram_fiq_log("\n");
+#endif
 #endif
 }
 
@@ -342,6 +339,7 @@ EXPORT_SYMBOL_GPL(kwdt_regist_irq_info);
 
 static void kwdt_time_sync(void)
 {
+#if 0
 	struct rtc_time tm;
 	struct timespec64 tv = { 0 };
 	/* android time */
@@ -361,6 +359,7 @@ static void kwdt_time_sync(void)
 		tm_android.tm_mon + 1, tm_android.tm_mday, tm_android.tm_hour,
 		tm_android.tm_min, tm_android.tm_sec,
 		(unsigned int)(tv_android.tv_nsec / 1000));
+#endif
 }
 
 static const int irq_to_ipi_type(int irq)
@@ -499,12 +498,11 @@ static void show_irq_count(void)
 {
 #define MAX_IRQ_NUM 1024
 	static unsigned int irq_counts[MAX_IRQ_NUM];
-	unsigned int count, unkick_cpu = cpumask_first(cpu_online_mask);
+	unsigned int unkick_cpu = cpumask_first(cpu_online_mask);
 	unsigned int unkick_cpumask = (get_kick_bit()^get_check_bit())&get_check_bit();
 	struct task_struct *tsk = cpu_curr(unkick_cpu);
 	u64 preempt_cnt = task_thread_info(tsk)->preempt_count;
 	struct irq_desc *desc;
-	char msg[64];
 	int irq;
 
 	if (unkick_cpumask != (1U << unkick_cpu) ||
@@ -522,6 +520,7 @@ static void show_irq_count(void)
 			irq_counts[irq] = data_race(*per_cpu_ptr(desc->kstat_irqs, unkick_cpu));
 		}
 	}
+#if 0
 	mdelay(2000);
 	aee_sram_fiq_log("show irq count in 2s:\n");
 	for (irq = 0; irq < min_t(int, nr_irqs, MAX_IRQ_NUM); irq++) {
@@ -554,10 +553,12 @@ static void show_irq_count(void)
 		aee_sram_fiq_log(msg);
 	}
 	aee_sram_fiq_log("\n");
+#endif
 }
 
 static void kwdt_dump_func(void)
 {
+#if 0
 	struct task_struct *g, *t;
 	int i = 0;
 
@@ -579,6 +580,7 @@ static void kwdt_dump_func(void)
 	}
 
 	dump_wdk_bind_info(true);
+#endif
 
 #if IS_ENABLED(CONFIG_MTK_IRQ_MONITOR)
 	if (p_mt_aee_dump_irq_info)
@@ -647,6 +649,7 @@ static char tmr_buf[8][WK_MAX_MSG_SIZE];
 static struct __call_single_data wdt_csd[8];
 static void wdt_dump_cntcv(void *arg)
 {
+#if 0
 	int ret = -1;
 	uint64_t cnt = 0;
 	uint32_t low = 0;
@@ -673,6 +676,8 @@ static void wdt_dump_cntcv(void *arg)
 		tmr_buf[smp_processor_id()][2] = 'R';
 		tmr_buf[smp_processor_id()][3] = '\0';
 	}
+#endif
+	tmr_buf[smp_processor_id()][0] = '\0';
 }
 #endif
 
@@ -747,21 +752,11 @@ static void kwdt_process_kick(int local_bit, int cpu,
 	}
 #endif
 
-	wk_tsk_kick_time[cpu] = sched_clock();
-	snprintf(msg_buf, WK_MAX_MSG_SIZE,
-	 "[wdk-c] cpu=%d o_k=%d lbit=0x%x cbit=0x%x,%x,%d,%d,%lld,%x,%ld,%ld,%ld,%ld,[%lld,%ld] %d %lx\n",
-	 cpu, original_kicker, local_bit, get_check_bit(),
-	 (local_bit ^ get_check_bit()) & get_check_bit(), lasthpg_cpu,
-	 lasthpg_act, lasthpg_t, atomic_read(&plug_mask), lastsuspend_t / 1000000,
-	 lastsuspend_syst / 1000000, lastresume_t / 1000000, lastresume_syst / 1000000,
-	 wk_tsk_kick_time[cpu], curInterval, r_counter, s_s2idle);
-
 	if ((local_bit & (get_check_bit() & s_s2idle)) == (get_check_bit() & s_s2idle)) {
 		all_k_timer_t = sched_clock();
 		del_timer(&aee_dump_timer);
 		aee_dump_timer_t = 0;
 		cpus_skip_bit = 0;
-		msg_buf[5] = 'k';
 		if (g_hang_detected == 2)
 			pm_system_wakeup();
 		g_hang_detected = 0;
@@ -796,12 +791,6 @@ static void kwdt_process_kick(int local_bit, int cpu,
 	}
 
 	spin_unlock_bh(&lock);
-
-	pr_info("%s", msg_buf);
-
-#if IS_ENABLED(CONFIG_SMP)
-	pr_info("%s", tmr_buf[cpu]);
-#endif
 
 	if (dump_timeout) {
 #if IS_ENABLED(CONFIG_MTK_TICK_BROADCAST_DEBUG)
