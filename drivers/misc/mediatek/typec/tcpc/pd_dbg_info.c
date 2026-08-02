@@ -84,6 +84,7 @@ list_unlock:
 
 int pd_dbg_info(const char *fmt, ...)
 {
+#if 0
 	size_t ts_size = 0, msg_size = 0, size = 0;
 	struct msg_node *mn = NULL;
 	u64 ts = 0;
@@ -123,6 +124,8 @@ int pd_dbg_info(const char *fmt, ...)
 	schedule_delayed_work(&print_out_dwork, 0);
 
 	return ts_size + msg_size;
+#endif
+	return 0;
 }
 EXPORT_SYMBOL(pd_dbg_info);
 
