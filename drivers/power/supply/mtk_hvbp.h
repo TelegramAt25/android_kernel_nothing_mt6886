@@ -19,20 +19,17 @@
 extern int hvbp_get_log_level(void);
 #define HVBP_DBG(fmt, ...) \
 	do { \
-		if (hvbp_get_log_level() >= HVBP_DBG_LEVEL) \
-			pr_info("[MTK_HVBP]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[MTK_HVBP]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define HVBP_INFO(fmt, ...) \
 	do { \
-		if (hvbp_get_log_level() >= HVBP_INFO_LEVEL) \
-			pr_info("[MTK_HVBP]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[MTK_HVBP]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define HVBP_ERR(fmt, ...) \
 	do { \
-		if (hvbp_get_log_level() >= HVBP_ERR_LEVEL) \
-			pr_info("[MTK_HVBP]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_info("[MTK_HVBP]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 enum hvbp_adc_channel {

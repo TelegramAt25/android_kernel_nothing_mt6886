@@ -323,10 +323,6 @@ static int pd_set_cap(struct adapter_device *dev, enum adapter_cap_type type,
 	int tcpm_ret = TCPM_SUCCESS;
 	struct mtk_pd_adapter_info *info;
 
-	pr_notice("[%s] type:%d mV:%d mA:%d\n",
-		__func__, type, mV, mA);
-
-
 	info = (struct mtk_pd_adapter_info *)adapter_dev_get_drvdata(dev);
 	if (info == NULL || info->tcpc == NULL) {
 		pr_notice("[%s] info null\n", __func__);
@@ -348,9 +344,6 @@ static int pd_set_cap(struct adapter_device *dev, enum adapter_cap_type type,
 		}
 		cnt++;
 	}while (tcpm_ret != TCP_DPM_RET_SUCCESS && cnt < 3);
-	pr_notice("[%s] type:%d mV:%d mA:%d ret:%d\n",
-		__func__, type, mV, mA, tcpm_ret);
-
 
 	if (tcpm_ret == TCP_DPM_RET_REJECT)
 		return MTK_ADAPTER_REJECT;
@@ -559,12 +552,12 @@ static int __maybe_unused pd_authentication(struct adapter_device *dev,
 		return MTK_ADAPTER_ERROR;
 
 	if (info->pd_type != MTK_PD_CONNECT_PE_READY_SNK_APDO) {
-		pr_info("%s pd type is not snk apdo\n", __func__);
+		pr_debug("%s pd type is not snk apdo\n", __func__);
 		return MTK_ADAPTER_ERROR;
 	}
 
 	if (!tcpm_inquire_pd_pe_ready(info->tcpc)) {
-		pr_info("%s PD PE not ready\n", __func__);
+		pr_debug("%s PD PE not ready\n", __func__);
 		return MTK_ADAPTER_ERROR;
 	}
 
@@ -576,13 +569,10 @@ static int __maybe_unused pd_authentication(struct adapter_device *dev,
 						  &cap_idx, &apdo_cap);
 		if (ret_check != (int)TCPM_SUCCESS) {
 			if (apdo_idx == -1)
-				pr_info("%s inquire pd apdo fail(%d)\n",
+				pr_debug("%s inquire pd apdo fail(%d)\n",
 				       __func__, ret_check);
 			break;
 		}
-
-		pr_info("%s cap_idx[%d], %d mv ~ %d mv, %d ma\n", __func__,
-			cap_idx, apdo_cap.min_mv, apdo_cap.max_mv, apdo_cap.ma);
 
 		/*
 		 * !(apdo_cap.min_mv <= data->vcap_min &&
@@ -597,8 +587,6 @@ static int __maybe_unused pd_authentication(struct adapter_device *dev,
 			memcpy(&selected_apdo_cap, &apdo_cap,
 			       sizeof(struct tcpm_power_cap_val));
 			apdo_idx = cap_idx;
-			pr_info("%s select potential cap_idx[%d]\n", __func__,
-				cap_idx);
 		}
 	}
 	if (apdo_idx != -1) {
@@ -616,7 +604,7 @@ static int __maybe_unused pd_authentication(struct adapter_device *dev,
 		ret_check = tcpm_dpm_pd_get_source_cap_ext(info->tcpc, NULL,
 						     &src_cap_ext);
 		if (ret_check != (int)TCP_DPM_RET_SUCCESS) {
-			pr_info("%s inquire pdp fail(%d)\n", __func__, ret);
+			pr_debug("%s inquire pdp fail(%d)\n", __func__, ret);
 			if (data->pwr_lmt) {
 				for (i = 0; i < apdo_pps_cnt; i++) {
 					if (apdo_pps_tbl[i].max_mv <

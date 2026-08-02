@@ -19,20 +19,17 @@
 extern int pe50_get_log_level(void);
 #define PE50_DBG(fmt, ...) \
 	do { \
-		if (pe50_get_log_level() >= PE50_DBG_LEVEL) \
-			pr_info("[PE50]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[PE50]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define PE50_INFO(fmt, ...) \
 	do { \
-		if (pe50_get_log_level() >= PE50_INFO_LEVEL) \
-			pr_info("[PE50]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[PE50]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define PE50_ERR(fmt, ...) \
 	do { \
-		if (pe50_get_log_level() >= PE50_ERR_LEVEL) \
-			pr_info("[PE50]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_notice("[PE50]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 enum pe50_adc_channel {

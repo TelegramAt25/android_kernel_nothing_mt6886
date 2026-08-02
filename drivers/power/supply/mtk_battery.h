@@ -67,23 +67,17 @@ do {\
 
 #define bm_info(fmt, args...)   \
 do {\
-	if (bat_get_debug_level() >= BMLOG_INFO_LEVEL) {\
-		pr_notice(fmt, ##args); \
-	}								   \
+	pr_debug(fmt, ##args); \
 } while (0)
 
 #define bm_debug(fmt, args...)   \
 do {\
-	if (bat_get_debug_level() >= BMLOG_DEBUG_LEVEL) {\
-		pr_notice(fmt, ##args); \
-	}								   \
+	pr_debug(fmt, ##args); \
 } while (0)
 
 #define bm_trace(fmt, args...)\
 do {\
-	if (bat_get_debug_level() >= BMLOG_TRACE_LEVEL) {\
-		pr_notice(fmt, ##args);\
-	}						\
+	pr_debug(fmt, ##args);\
 } while (0)
 
 #define BAT_SYSFS_FIELD_RW(_name, _prop)	\

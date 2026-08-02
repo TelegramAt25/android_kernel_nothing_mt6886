@@ -19,20 +19,17 @@
 extern int pe5p_get_log_level(void);
 #define PE5P_DBG(fmt, ...) \
 	do { \
-		if (pe5p_get_log_level() >= PE5P_DBG_LEVEL) \
-			pr_info("[PE5P]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[PE5P]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define PE5P_INFO(fmt, ...) \
 	do { \
-		if (pe5p_get_log_level() >= PE5P_INFO_LEVEL) \
-			pr_info("[PE5P]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[PE5P]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define PE5P_ERR(fmt, ...) \
 	do { \
-		if (pe5p_get_log_level() >= PE5P_ERR_LEVEL) \
-			pr_info("[PE5P]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_info("[PE5P]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 enum pe5p_adc_channel {
