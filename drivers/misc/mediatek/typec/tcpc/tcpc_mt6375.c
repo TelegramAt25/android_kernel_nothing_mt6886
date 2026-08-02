@@ -27,18 +27,8 @@
 #define CC_SHORT_DEBOUNCE	100
 #define MT6375_FOD_SRC_EN	0
 
-#define MT6375_INFO(fmt, ...) \
-	do { \
-		if (MT6375_INFO_EN) \
-			pd_dbg_info("%s " fmt, __func__, ##__VA_ARGS__); \
-	} while (0)
-
-#define MT6375_DBGINFO(fmt, ...) \
-	do { \
-		if (MT6375_DBGINFO_EN) \
-			pd_dbg_info("%s " fmt, __func__, ##__VA_ARGS__); \
-	} while (0)
-
+#define MT6375_INFO(fmt, ...) ((void)0)
+#define MT6375_DBGINFO(fmt, ...) ((void)0)
 #define MT6375_VID	0x29CF
 #define MT6375_PID	0x6375
 
@@ -1885,10 +1875,7 @@ static int mt6375_transmit(struct tcpc_device *tcpc,
 	int ret, data_cnt, packet_cnt;
 	u8 temp[MT6375_TRANSMIT_MAX_SIZE + 1];
 	struct mt6375_tcpc_data *ddata = tcpc_get_dev_data(tcpc);
-	long long t1 = 0, t2 = 0;
 
-	MT6375_INFO("++\n");
-	t1 = local_clock();
 	if (type < TCPC_TX_HARD_RESET) {
 		data_cnt = sizeof(u32) * PD_HEADER_CNT(header);
 		packet_cnt = data_cnt + sizeof(u16);
@@ -1907,8 +1894,6 @@ static int mt6375_transmit(struct tcpc_device *tcpc,
 	ret = mt6375_write8(ddata, TCPC_V10_REG_TRANSMIT,
 			     TCPC_V10_REG_TRANSMIT_SET(tcpc->pd_retry_count,
 			     type));
-	t2 = local_clock();
-	MT6375_INFO("-- delta = %lluus\n", (t2 - t1) / NSEC_PER_USEC);
 
 #if PD_DYNAMIC_SENDER_RESPONSE
 	tcpc->t[0] = local_clock();
