@@ -142,7 +142,7 @@ void gh_be32_to_cpu_array(u16 *src, u32 *target, int num);
 /*--------------utils end------------------*/
 
 #define	gh_err(fmt, ...)	gh_log_print(GH621X_LOG_LEVEL_ERROR, "[gh621x_E]"fmt"\n", ##__VA_ARGS__)
-#define gh_info(fmt, ...)	gh_log_print(GH621X_LOG_LEVEL_INFO, "[gh621x_I]"fmt"\n", ##__VA_ARGS__)
+#define gh_info(fmt, ...)	((void)0)
 #define gh_debug(fmt, ...)	((void)0)
 
 #endif
