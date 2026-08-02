@@ -20,7 +20,6 @@
 
 static u32 cnted_share_mem[SHARE_MEM_SIZE];
 static u32 rfhw_sel;
-static int mt_mdpm_debug;
 
 static struct md_power_status mdpm_power_sta;
 
@@ -110,56 +109,12 @@ int get_md1_power(enum mdpm_power_type power_type, bool need_update)
 	tx_power = get_md1_tx_power(scenario, dbm_share_mem, power_type,
 		&mdpm_power_sta);
 
-	if (mt_mdpm_debug)
-		pr_info("[md1_power] scenario_power=%d tx_power=%d total=%d\n",
-			scenario_power, tx_power, scenario_power + tx_power);
-
 	return scenario_power + tx_power;
 #else
 	return 0;
 #endif /* CONFIG_MTK_ECCCI_DRIVER */
 }
 EXPORT_SYMBOL(get_md1_power);
-
-static int mt_mdpm_debug_proc_show(struct seq_file *m, void *v)
-{
-	if (mt_mdpm_debug)
-		seq_printf(m, "mdpm debug enabled mt_mdpm_debug=%d\n",
-			mt_mdpm_debug);
-	else
-		seq_puts(m, "mdpm debug disabled\n");
-
-	return 0;
-}
-
-/*
- * enable debug message
- */
-static ssize_t mt_mdpm_debug_proc_write
-(struct file *file, const char __user *buffer, size_t count, loff_t *data)
-{
-	char desc[32];
-	int len = 0;
-	int debug = 0;
-
-	len = (count < (sizeof(desc) - 1)) ? count : (sizeof(desc) - 1);
-	if (copy_from_user(desc, buffer, len))
-		return 0;
-
-	len = (len < 0) ? 0 : len;
-	desc[len] = '\0';
-
-	/* if (sscanf(desc, "%d", &debug) == 1) { */
-	if (kstrtoint(desc, 10, &debug) == 0) {
-		if (debug >= 0 && debug <= 2)
-			mt_mdpm_debug = debug;
-		else
-			pr_notice("should be [0:disable, 1,2:enable level]\n");
-	} else
-		pr_notice("should be [0:disable, 1,2:enable level]\n");
-
-	return count;
-}
 
 static int mt_mdpm_power_proc_show(struct seq_file *m, void *v)
 {
@@ -200,7 +155,6 @@ static const struct proc_ops mt_ ## name ## _proc_fops = {	\
 
 #define PROC_ENTRY(name)	{__stringify(name), &mt_ ## name ## _proc_fops}
 
-PROC_FOPS_RW(mdpm_debug);
 PROC_FOPS_RO(mdpm_power);
 
 static int mt_mdpm_create_procfs(void)
@@ -214,7 +168,6 @@ static int mt_mdpm_create_procfs(void)
 	};
 
 	const struct pentry entries[] = {
-		PROC_ENTRY(mdpm_debug),
 		PROC_ENTRY(mdpm_power),
 	};
 
@@ -342,9 +295,6 @@ static u32 check_shm_version(u32 *share_mem)
 
 	switch (mdpm_version_check) {
 	case VERSION_INIT:
-		if (mt_mdpm_debug)
-			pr_info_ratelimited("mdpm share memory: MD not init\n");
-
 		break;
 	case VERSION_INVALID:
 		pr_info("dpm share memory: MD check version ERROR\n");
@@ -488,13 +438,6 @@ enum md_scenario get_md1_scenario_by_shm(u32 *share_mem)
 
 	scenario = (scenario < 0) ? S_STANDBY : scenario;
 
-	if (mt_mdpm_debug)
-		pr_info("scen_status: 0x%lx, scen_status1: 0x%x, scen_status2: 0x%x\n",
-				scen_status, scen_status1, scen_status2);
-		pr_info("MD1 scenario: %d(%s), scen_status: 0x%x\n",
-			scenario, mdpm_scen[scenario].scenario_name,
-			scen_status);
-
 	return scenario;
 }
 #else
@@ -508,11 +451,6 @@ enum md_scenario get_md1_scenario(u32 share_reg,
 	scenario = get_md1_scenario_internal(share_reg);
 
 	scenario = (scenario < 0) ? S_STANDBY : scenario;
-
-	if (mt_mdpm_debug)
-		pr_info("MD1 scenario: %d(%s), reg: 0x%x\n",
-			scenario, mdpm_scen[scenario].scenario_name,
-			share_reg);
 
 	return scenario;
 }
@@ -577,14 +515,6 @@ static int get_md1_tx_power_by_table(u32 *dbm_mem, u32 *old_dbm_mem,
 	}
 
 	if (cmp) {
-		if (mt_mdpm_debug == 2)
-			pr_info("%s dBm no TX power, reg: 0x%08x%08x(0x%08x%08x) return 0\n",
-			tx_pwr->dbm_name,
-			dbm_mem[tx_pwr->shm_dbm_idx[0]],
-			dbm_mem[tx_pwr->shm_dbm_idx[1]],
-			old_dbm_mem[tx_pwr->shm_dbm_idx[0]],
-			old_dbm_mem[tx_pwr->shm_dbm_idx[1]]);
-
 		return 0;
 	}
 
@@ -609,15 +539,6 @@ static int get_md1_tx_power_by_table(u32 *dbm_mem, u32 *old_dbm_mem,
 					__func__, power_type);
 				break;
 			}
-
-			if (mt_mdpm_debug)
-				pr_info("%s dBm: reg:0x%08x%08x(0x%08x%08x),pa:%d,rf:%d,s:%d\n",
-				tx_pwr->dbm_name, dbm_mem[tx_pwr->shm_dbm_idx[0]],
-				dbm_mem[tx_pwr->shm_dbm_idx[1]],
-				old_dbm_mem[tx_pwr->shm_dbm_idx[0]],
-				old_dbm_mem[tx_pwr->shm_dbm_idx[1]],
-				pa_power, rf_power, section+1);
-
 
 			for (i	= 0; i < DBM_TABLE_SIZE; i++) {
 				memcpy(
@@ -724,15 +645,11 @@ int get_md1_tx_power(enum md_scenario scenario, u32 *share_mem,
 	enum mdpm_power_type power_type,
 	struct md_power_status *mdpm_pwr_sta)
 {
-	int i, rf_ret, tx_power, tx_power_max, usedBytes = 0;
+	int i, rf_ret, tx_power, tx_power_max;
 	enum tx_rat_type rat;
 	struct md_power_status mdpm_power_s_tmp;
-	char log_buffer[128];
 
 	if (share_mem == NULL) {
-		if (mt_mdpm_debug)
-			pr_info("MD1 share_mem is NULL\n");
-
 		return 0;
 	}
 
@@ -740,17 +657,6 @@ int get_md1_tx_power(enum md_scenario scenario, u32 *share_mem,
 		rf_ret = get_rfhw(share_mem);
 	else
 		return 0;
-
-	if (mt_mdpm_debug == 2)
-		for (i = 0; i < SHARE_MEM_SIZE; i++) {
-			usedBytes += sprintf(log_buffer + usedBytes, "0x%x ",
-				share_mem[i]);
-
-			if ((i + 1) % 10 == 0 || (i + 1) == SHARE_MEM_SIZE) {
-				usedBytes = 0;
-				pr_info("%s\n", log_buffer);
-			}
-		}
 
 	memset((void *)&mdpm_power_s_tmp, 0, sizeof(struct md_power_status));
 	tx_power_max = 0;
