@@ -19,20 +19,17 @@
 extern int pps_get_log_level(void);
 #define PPS_DBG(fmt, ...) \
 	do { \
-		if (pps_get_log_level() >= PPS_DBG_LEVEL) \
-			pr_info("[PPS]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[PPS]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define PPS_INFO(fmt, ...) \
 	do { \
-		if (pps_get_log_level() >= PPS_INFO_LEVEL) \
-			pr_info("[PPS]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_debug("[PPS]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define PPS_ERR(fmt, ...) \
 	do { \
-		if (pps_get_log_level() >= PPS_ERR_LEVEL) \
-			pr_info("[PPS]%s " fmt, __func__, ##__VA_ARGS__); \
+		pr_notice("[PPS]%s " fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 enum pps_adc_channel {

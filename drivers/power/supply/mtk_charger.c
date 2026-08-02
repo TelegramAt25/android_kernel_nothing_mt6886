@@ -146,8 +146,6 @@ static int mtk_charger_enable_power_path_cust(struct mtk_charger *info,
 	else
 		goto out;
 
-	chr_err("%s: area_id(%d), disable_pp(u=%d,p=%d), en_pp = %d\n", __func__,
-			g_nt_chg->area_id, info->usb_disable_pp, info->pd_disable_pp, setting);
 	ret = charger_dev_is_powerpath_enabled(chg_dev, &is_en);
 	if (ret < 0) {
 		chr_err("%s: get is power path enabled failed\n", __func__);
@@ -155,7 +153,6 @@ static int mtk_charger_enable_power_path_cust(struct mtk_charger *info,
 	}
 
 	if (is_en == setting) {
-		chr_err("%s: power path is already en = %d\n", __func__, is_en);
 		goto out;
 	}
 

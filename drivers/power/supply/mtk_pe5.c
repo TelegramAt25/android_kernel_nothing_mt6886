@@ -1500,8 +1500,6 @@ static int pe50_calculate_rcable_by_swchg(struct pe50_algo_info *info)
 		}
 		vbus1 += val_vbus;
 		ibus1 += val_ibus;
-		PE50_ERR("vbus=%d ibus=%d vbus(max,min)=(%d,%d) ibus(max,min)=(%d,%d) vbus1=%d ibus1=%d",
-				val_vbus, val_ibus, vbus_max, vbus_min, ibus_max, ibus_min, vbus1, ibus1);
 	}
 
 	vbus1 -= (vbus_min + vbus_max);
@@ -1539,8 +1537,6 @@ static int pe50_calculate_rcable_by_swchg(struct pe50_algo_info *info)
 		}
 		vbus2 += val_vbus;
 		ibus2 += val_ibus;
-		PE50_ERR("vbus=%d ibus=%d vbus(max,min)=(%d,%d) ibus(max,min)=(%d,%d) vbus2=%d ibus2=%d",
-				val_vbus, val_ibus, vbus_max, vbus_min, ibus_max, ibus_min, vbus2, ibus2);
 	}
 
 	vbus2 -= (vbus_min + vbus_max);
@@ -3701,6 +3697,7 @@ static int pe50_post_handle_notify_evt(struct pe50_algo_info *info)
 
 static int pe50_dump_charging_info(struct pe50_algo_info *info)
 {
+#if 0
 	int ret, i;
 	int vbus, ibus[PE50_DVCHG_MAX] = {0}, ibus_swchg = 0, vbat, ibat, vout[PE50_DVCHG_MAX] = {0};
 	int ibus_total, vsys, tbat;
@@ -3783,6 +3780,7 @@ static int pe50_dump_charging_info(struct pe50_algo_info *info)
 		 tbat, vsys, soc,
 		 vout[PE50_DVCHG_MASTER], vout[PE50_DVCHG_SLAVE]);
 
+#endif
 	return 0;
 }
 static bool pe50_dump_hwerr_info(struct pe50_algo_info *info)

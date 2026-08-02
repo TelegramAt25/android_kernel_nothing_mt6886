@@ -646,10 +646,6 @@ static int fg_compensate_battery_voltage_from_low(
 			if (fg_volt_withIR > oriv) {
 				hit_h_percent = profile_p[high].percentage;
 				hit_l_percent = profile_p[high-1].percentage;
-				bm_err("[%s]h_percent=[%d,%d],high=%d,fg_volt_withIR=%d > oriv=%d\n",
-					__func__,
-					hit_h_percent, hit_l_percent,
-					high, fg_volt_withIR, oriv);
 				break;
 			}
 		} else {
@@ -682,11 +678,6 @@ static int fg_compensate_battery_voltage_from_low(
 		fg_volt_withIR = fg_volt + ret_compensate_value;
 
 		if (fg_volt_withIR > oriv) {
-			bm_err("[%s]fg_volt=%d,%d,IR=%d,orig_v:%d,+IR=%d,percent=%d,\n",
-				__func__,
-				fg_volt, high,
-				ret_compensate_value, oriv,
-				fg_volt_withIR, i);
 			return fg_volt;
 		}
 	}
