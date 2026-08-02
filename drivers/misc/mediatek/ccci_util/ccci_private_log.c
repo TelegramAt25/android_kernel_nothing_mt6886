@@ -376,6 +376,7 @@ static ssize_t ccci_dump_fops_write(struct file *file,
 
 int ccci_dump_write(unsigned int buf_type, unsigned int flag, const char *fmt, ...)
 {
+#if 0
 	va_list args;
 	unsigned int write_len = 0;
 	unsigned long flags;
@@ -523,6 +524,8 @@ int ccci_dump_write(unsigned int buf_type, unsigned int flag, const char *fmt, .
 	kfree(temp_log);
 
 	return write_len;
+#endif
+	return 0;
 }
 EXPORT_SYMBOL(ccci_dump_write);
 
