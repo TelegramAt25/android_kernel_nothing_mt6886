@@ -2680,12 +2680,14 @@ static int dpmaif_init_cap(struct device *dev)
 		return -1;
 	}
 
+#if DPMAIF_TRAFFIC_MONITOR_INTERVAL
 	dpmaif_ctl->rx_tfc_pkgs = kzalloc(sizeof(unsigned int) * dpmaif_ctl->real_rxq_num,
 			GFP_KERNEL);
 	if (!dpmaif_ctl->rx_tfc_pkgs) {
 		CCCI_ERROR_LOG(0, TAG, "[%s] error: kzalloc() rx_tfc_pkgs fail\n", __func__);
 		return -1;
 	}
+#endif
 
 	mtk_ccci_register_speed_1s_callback(dpmaif_total_spd_cb);
 
