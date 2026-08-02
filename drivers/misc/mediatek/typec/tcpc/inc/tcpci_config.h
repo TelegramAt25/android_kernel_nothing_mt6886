@@ -77,7 +77,7 @@
 #define CONFIG_TCPC_NOTIFICATION_NON_BLOCKING	1
 
 /* debug config */
-#define CONFIG_PD_BEGUG_ON 1
+#define CONFIG_PD_BEGUG_ON 0
 
 #if IS_ENABLED(CONFIG_USB_POWER_DELIVERY)
 #include "tcpci_pd_config.h"
