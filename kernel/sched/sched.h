@@ -1001,6 +1001,13 @@ struct rq {
 	u64			clock;
 	/* Ensure that all clocks are in the same cache line */
 	u64			clock_task ____cacheline_aligned;
+#ifdef __GENKSYMS__
+	// HACK: CRC ABI fixups
+	u64			clock_task_mult;
+#else
+	/* HACK: KABI preservation, DO NOT USE! */
+	u64			unused;
+#endif
 	u64			clock_pelt;
 	unsigned long		lost_idle_time;
 
