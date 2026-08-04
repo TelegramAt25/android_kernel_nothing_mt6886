@@ -62,7 +62,7 @@ long gro_flush_timer;
 #define DEV_OPEN                1
 #define DEV_CLOSE               0
 #define MAX_MTU                 3000
-static unsigned long timeout_flush_num, clear_flush_num;
+static unsigned long timeout_flush_num;
 
 static u64 g_cur_dl_speed;
 static u32 g_tcp_is_need_gro = 1;
@@ -1447,6 +1447,7 @@ static void ccmni_md_state_callback(int ccmni_idx, enum MD_STATE state)
 
 static void ccmni_dump(int ccmni_idx, unsigned int flag)
 {
+#if 0
 	struct ccmni_ctl_block *ctlb = NULL;
 	struct ccmni_instance *ccmni = NULL;
 	struct ccmni_instance *ccmni_tmp = NULL;
@@ -1524,6 +1525,7 @@ static void ccmni_dump(int ccmni_idx, unsigned int flag)
 				  ccmni->tx_busy_cnt[0],
 			      ccmni->tx_busy_cnt[1], dev->state, dev->flags,
 				  dev_queue->state);
+#endif
 }
 
 static void ccmni_dump_rx_status(unsigned long long *status)
