@@ -255,8 +255,6 @@ int scp_resource_req(unsigned int req_type)
 	if (req_type >= SCP_REQ_MAX)
 		return 0;
 
-	pr_notice("%s(0x%x)\n", __func__, req_type);
-
 	arm_smccc_smc(MTK_SIP_SCP_DVFS_CONTROL, RESOURCE_REQ,
 		req_type, 0, 0, 0, 0, 0, &res);
 	if (!res.a0)
