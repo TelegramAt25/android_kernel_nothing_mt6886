@@ -177,9 +177,6 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 	pinfo = container_of(pnb, struct mtk_pd_adapter_info, pd_nb);
 	adapter = pinfo->adapter_dev;
 
-	pr_notice("PD charger event:%d %d\n", (int)event,
-		(int)noti->pd_state.connected);
-
 	switch (event) {
 	case TCP_NOTIFY_PD_STATE:
 		switch (noti->pd_state.connected) {
@@ -268,7 +265,7 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 	case TCP_NOTIFY_SINK_VBUS:
 		sink_mv = noti->vbus_state.mv;
 		sink_ma = noti->vbus_state.ma;
-		pr_info("%s: sink vbus %dmV %dmA type(0x%02x)\n", __func__,
+		pr_debug("%s: sink vbus %dmV %dmA type(0x%02x)\n", __func__,
 			sink_mv, sink_ma, noti->vbus_state.type);
 		if (!pinfo->enable_pp) {
 			if (sink_mv && sink_ma) {

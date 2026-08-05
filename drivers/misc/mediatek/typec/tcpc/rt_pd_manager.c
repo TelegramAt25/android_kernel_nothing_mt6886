@@ -50,22 +50,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 	struct typec_displayport_data dp_data = {.status = 0, .conf = 0};
 	struct typec_mux_state state = {.mode = 0, .data = &dp_data};
 
-	dev_info(rpmd->dev, "%s event = %lu, idx = %d\n", __func__, event, idx);
-
 	switch (event) {
 	case TCP_NOTIFY_VBUS_SHORT_CC:
-		if (noti->vsc_status.short_status)
-			dev_info(rpmd->dev,
-				 "%s enter short status, short_cc = %s\n",
-				 __func__, noti->vsc_status.short_cc ==
-				 TCPC_POLARITY_CC1 ? "CC1" : "CC2");
-		else
-			dev_info(rpmd->dev, "%s exit short status\n", __func__);
 		break;
 	case TCP_NOTIFY_SINK_VBUS:
-		dev_info(rpmd->dev, "%s sink vbus %dmV %dmA type(0x%02X)\n",
-				    __func__, noti->vbus_state.mv,
-				    noti->vbus_state.ma, noti->vbus_state.type);
 		/*
 		 * TODO: Disable Charger Powerpath when mA is 0 and set AICR according to mA.
 		 * ex:
@@ -74,9 +62,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		 */
 		break;
 	case TCP_NOTIFY_SOURCE_VBUS:
-		dev_info(rpmd->dev, "%s source vbus %dmV %dmA type(0x%02X)\n",
-				    __func__, noti->vbus_state.mv,
-				    noti->vbus_state.ma, noti->vbus_state.type);
 		break;
 	case TCP_NOTIFY_TYPEC_STATE:
 		old_state = noti->typec_state.old_state;
@@ -87,9 +72,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		     new_state == TYPEC_ATTACHED_NORP_SRC ||
 		     new_state == TYPEC_ATTACHED_CUSTOM_SRC ||
 		     new_state == TYPEC_ATTACHED_DBGACC_SNK)) {
-			dev_info(rpmd->dev,
-				 "%s Charger plug in, polarity = %d\n",
-				 __func__, noti->typec_state.polarity);
 			/*
 			 * start charger type detection,
 			 * and enable device connection
@@ -112,7 +94,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			    old_state == TYPEC_ATTACHED_CUSTOM_SRC ||
 			    old_state == TYPEC_ATTACHED_DBGACC_SNK) &&
 			    new_state == TYPEC_UNATTACHED) {
-			dev_info(rpmd->dev, "%s Charger plug out\n", __func__);
 			/*
 			 * report charger plug-out,
 			 * and disable device connection
@@ -120,9 +101,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		} else if (old_state == TYPEC_UNATTACHED &&
 			   (new_state == TYPEC_ATTACHED_SRC ||
 			    new_state == TYPEC_ATTACHED_DEBUG)) {
-			dev_info(rpmd->dev,
-				 "%s OTG plug in, polarity = %d\n",
-				 __func__, noti->typec_state.polarity);
 			/* enable host connection */
 
 			typec_set_data_role(rpmd->typec_port[idx], TYPEC_HOST);
@@ -147,6 +125,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 					      noti->typec_state.polarity ?
 					      TYPEC_ORIENTATION_REVERSE :
 					      TYPEC_ORIENTATION_NORMAL);
+#if 0
 		} else if ((old_state == TYPEC_ATTACHED_SRC ||
 			    old_state == TYPEC_ATTACHED_DEBUG) &&
 			    new_state == TYPEC_UNATTACHED) {
@@ -160,6 +139,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			   new_state == TYPEC_UNATTACHED) {
 			dev_info(rpmd->dev, "%s Audio plug out\n", __func__);
 			/* disable AudioAccessory connection */
+#endif
 		}
 
 		if (new_state == TYPEC_UNATTACHED) {
@@ -232,10 +212,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		}
 		break;
 	case TCP_NOTIFY_PR_SWAP:
-		dev_info(rpmd->dev, "%s power role swap, new role = %d\n",
+		dev_dbg(rpmd->dev, "%s power role swap, new role = %d\n",
 				    __func__, noti->swap_state.new_role);
 		if (noti->swap_state.new_role == PD_ROLE_SINK) {
-			dev_info(rpmd->dev, "%s swap power role to sink\n",
+			dev_dbg(rpmd->dev, "%s swap power role to sink\n",
 					    __func__);
 			/*
 			 * report charger plug-in without charger type detection
@@ -244,7 +224,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 
 			typec_set_pwr_role(rpmd->typec_port[idx], TYPEC_SINK);
 		} else if (noti->swap_state.new_role == PD_ROLE_SOURCE) {
-			dev_info(rpmd->dev, "%s swap power role to source\n",
+			dev_dbg(rpmd->dev, "%s swap power role to source\n",
 					    __func__);
 			/* report charger plug-out */
 
@@ -252,10 +232,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		}
 		break;
 	case TCP_NOTIFY_DR_SWAP:
-		dev_info(rpmd->dev, "%s data role swap, new role = %d\n",
+		dev_dbg(rpmd->dev, "%s data role swap, new role = %d\n",
 				    __func__, noti->swap_state.new_role);
 		if (noti->swap_state.new_role == PD_ROLE_UFP) {
-			dev_info(rpmd->dev, "%s swap data role to device\n",
+			dev_dbg(rpmd->dev, "%s swap data role to device\n",
 					    __func__);
 			/*
 			 * disable host connection,
@@ -265,7 +245,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			typec_set_data_role(rpmd->typec_port[idx],
 					    TYPEC_DEVICE);
 		} else if (noti->swap_state.new_role == PD_ROLE_DFP) {
-			dev_info(rpmd->dev, "%s swap data role to host\n",
+			dev_dbg(rpmd->dev, "%s swap data role to host\n",
 					    __func__);
 			/*
 			 * disable device connection,
@@ -276,15 +256,15 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		}
 		break;
 	case TCP_NOTIFY_VCONN_SWAP:
-		dev_info(rpmd->dev, "%s vconn role swap, new role = %d\n",
+		dev_dbg(rpmd->dev, "%s vconn role swap, new role = %d\n",
 				    __func__, noti->swap_state.new_role);
 		if (noti->swap_state.new_role) {
-			dev_info(rpmd->dev, "%s swap vconn role to on\n",
+			dev_dbg(rpmd->dev, "%s swap vconn role to on\n",
 					    __func__);
 			typec_set_vconn_role(rpmd->typec_port[idx],
 					     TYPEC_SOURCE);
 		} else {
-			dev_info(rpmd->dev, "%s swap vconn role to off\n",
+			dev_dbg(rpmd->dev, "%s swap vconn role to off\n",
 					    __func__);
 			typec_set_vconn_role(rpmd->typec_port[idx], TYPEC_SINK);
 		}
@@ -293,7 +273,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		typec_set_pwr_opmode(rpmd->typec_port[idx], TYPEC_PWR_MODE_PD);
 		break;
 	case TCP_NOTIFY_PD_STATE:
-		dev_info(rpmd->dev, "%s pd state = %d\n",
+		dev_dbg(rpmd->dev, "%s pd state = %d\n",
 				    __func__, noti->pd_state.connected);
 		switch (noti->pd_state.connected) {
 		case PD_CONNECT_NONE:
@@ -334,7 +314,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 				   __func__, noti->cable_type.type);
 		break;
 	case TCP_NOTIFY_AMA_DP_HPD_STATE:
-		dev_info(rpmd->dev, "%s irq = %u, state = %u\n",
+		dev_dbg(rpmd->dev, "%s irq = %u, state = %u\n",
 				    __func__, noti->ama_dp_hpd_state.irq,
 				    noti->ama_dp_hpd_state.state);
 		if (noti->ama_dp_hpd_state.irq)
@@ -344,13 +324,13 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		typec_mux_set(rpmd->mux[idx], &state);
 		break;
 	case TCP_NOTIFY_AMA_DP_STATE:
-		dev_info(rpmd->dev, "%s sel_config = %u, signal = %u\n",
+		dev_dbg(rpmd->dev, "%s sel_config = %u, signal = %u\n",
 				    __func__, noti->ama_dp_state.sel_config,
 				    noti->ama_dp_state.signal);
-		dev_info(rpmd->dev, "%s pin_assignment = %u, polarity = %u\n",
+		dev_dbg(rpmd->dev, "%s pin_assignment = %u, polarity = %u\n",
 				    __func__, noti->ama_dp_state.pin_assignment,
 				    noti->ama_dp_state.polarity);
-		dev_info(rpmd->dev, "%s active = %u\n",
+		dev_dbg(rpmd->dev, "%s active = %u\n",
 				    __func__, noti->ama_dp_state.active);
 		dp_data.conf = noti->ama_dp_state.pin_assignment;
 		typec_mux_set(rpmd->mux[idx], &state);
@@ -366,7 +346,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 				   __func__, noti->vbus_level);
 		break;
 	case TCP_NOTIFY_CC_HI:
-		dev_info(rpmd->dev, "%s cc_hi = %d\n", __func__, noti->cc_hi);
+		dev_dbg(rpmd->dev, "%s cc_hi = %d\n", __func__, noti->cc_hi);
 		break;
 	default:
 		break;

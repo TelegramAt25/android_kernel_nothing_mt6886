@@ -567,7 +567,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		    (noti->typec_state.new_state == TYPEC_ATTACHED_SNK ||
 		    noti->typec_state.new_state == TYPEC_ATTACHED_CUSTOM_SRC ||
 		    noti->typec_state.new_state == TYPEC_ATTACHED_NORP_SRC)) {
-			pr_info("%s:[NT] USB Plug in, pol = %d\n", __func__,	noti->typec_state.polarity);
 			nci->typec_attach = true;
 			if (nci->info) {
 				/* Re-plugin, clear pp flag */
@@ -606,8 +605,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 	case TCP_NOTIFY_SINK_VBUS:
 		sink_mv = noti->vbus_state.mv;
 		sink_ma = noti->vbus_state.ma;
-		pr_err("NT_CHG: sink vbus %dmV %dmA type(0x%02x)\n",
-			sink_mv, sink_ma, noti->vbus_state.type);
 		usb_psy = power_supply_get_by_name("usb");
 		if (usb_psy && nci->info) {
 			nci->info->sink_ua = sink_ma * 1000;
