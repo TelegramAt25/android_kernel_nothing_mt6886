@@ -270,10 +270,9 @@ static unsigned int check_abnormal_status(struct nt_chg_info *nci)
 	
 	if (!check_pps_status(nci))
 		notify_code |= NT_NOTIFY_CHARGE_PUMP_ERR;
-	pr_info("%s: [nt_abnormal_status] : %d \n",__func__, notify_code);
 	for(i = 0;i < 20; i++){
 		if(g_abnormal_info[i].type & notify_code){
-			pr_info("[nt_abnormal_status] : { %s }",g_abnormal_info[i].item_text);
+			pr_debug("[nt_abnormal_status] : { %s }",g_abnormal_info[i].item_text);
 		}
 	}
 	return notify_code;
@@ -300,7 +299,6 @@ static int cooling_state_to_charger_limit(struct nt_chg_info *nci)
 	}
 	mutex_lock(&nci->proc_lock);
 	lst_rnd_alg_idx = info->lst_rnd_alg_idx;
-	pr_err("%s:lst_rnd_alg_idx :%d\n", __func__,lst_rnd_alg_idx);
 	if(lst_rnd_alg_idx != -1){
 		alg = info->alg[lst_rnd_alg_idx];
 		is_fast_charge = true;
@@ -499,7 +497,6 @@ static int chg_check_pmic_info(struct nt_chg_info *nci,enum power_supply_propert
 	} else {
 		power_supply_get_property(bc12_psy,	psp, &prop);
 	}
-	pr_info("%s: psp:%d - %d \n", __func__, psp, prop.intval);
 	return prop.intval;
 }
 
