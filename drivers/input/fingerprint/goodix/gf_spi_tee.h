@@ -20,7 +20,7 @@
 #define DEBUG_LOG (2)
 /*if (g_debug_level >= level) {\*/
 #define gf_debug(level, fmt, args...) do { \
-			if (true) {\
+			if (level == 0) {\
 				pr_warn("[goodix_fp] " fmt, ##args); \
 			} \
 		} while (0)
