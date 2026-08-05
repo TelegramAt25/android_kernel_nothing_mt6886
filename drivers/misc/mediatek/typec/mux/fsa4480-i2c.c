@@ -180,6 +180,7 @@ static int fsa4480_usbc_event_changed(struct notifier_block *nb,
 	if (!dev)
 		return -EINVAL;
 
+#ifdef I_NEED_TO_KNOW_SWITCH_CHIP_URGENT_EXCLAIMATION_MQRK
 	if (fsa_priv->vendor == HL5280) {
 		dev_info(dev, "%s: switch chip is HL5280\n", __func__);
 	}
@@ -191,29 +192,22 @@ static int fsa4480_usbc_event_changed(struct notifier_block *nb,
 	}
 
 	dev_info(dev, "%s: typeC event: %d\n", __func__, evt);
+#endif
 
 	switch (evt) {
 	case TCP_NOTIFY_TYPEC_STATE:
-		dev_info(dev, "%s: old_state: %d, new_state: %d\n",
-			__func__, noti->typec_state.old_state, noti->typec_state.new_state);
 		if (noti->typec_state.old_state == TYPEC_UNATTACHED &&
 			noti->typec_state.new_state == TYPEC_ATTACHED_AUDIO) {
 			/* AUDIO plug in */
-			dev_info(dev, "%s: audio plug in\n", __func__);
 			fsa_priv->plug_state = true;
-			dev_dbg(dev, "%s: tcpc polarity = %d\n", __func__, noti->typec_state.polarity);
 			pm_stay_awake(fsa_priv->dev);
 			schedule_work(&fsa_priv->usbc_analog_work);
 		} else if (noti->typec_state.old_state == TYPEC_ATTACHED_AUDIO
 			&& noti->typec_state.new_state == TYPEC_UNATTACHED) {
 			/* AUDIO plug out */
-			dev_err(dev, "%s: audio plug out\n", __func__);
 			fsa_priv->plug_state = false;
 			pm_stay_awake(fsa_priv->dev);
 			schedule_work(&fsa_priv->usbc_analog_work);
-		}
-		else {
-			dev_dbg(dev, "%s: ignore tcpc non-audio notification\n", __func__);
 		}
 		break;
 	default:
