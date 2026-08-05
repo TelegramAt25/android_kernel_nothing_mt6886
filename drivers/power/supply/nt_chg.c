@@ -129,8 +129,6 @@ static int check_pps_status(struct nt_chg_info *nci)
 	struct pe50_algo_desc *desc1 = NULL;
 	bool is_ok = true;
 
-	pr_err("%s: typec_attach=%d, pd_type=%d\n", __func__,
-			nci->typec_attach, nci->info->pd_type);
 	if (nci->info->pd_type != MTK_PD_CONNECT_PE_READY_SNK_APDO)
 		return is_ok;
 	if (!nci->typec_attach)
@@ -139,32 +137,27 @@ static int check_pps_status(struct nt_chg_info *nci)
 		return is_ok;
 	alg = get_chg_alg_by_name("pe5");
 	if(alg) {
-			info = chg_alg_dev_get_drvdata(alg);
-			if (info && info->data) {
-				desc1 = info->desc;
-				if (desc1 == NULL)
-					return is_ok;
-				if ((nci->info->battery_temp > desc1->tbat_level_def[PE50_THERMAL_VERY_HOT]) && (info->data->state == PE50_ALGO_STOP) && (info->data->finish != true)) {
-                                  
-						is_ok = false;
-						pr_err("%s: state=%d, finish=%d\n", __func__, info->data->state,
-						info->data->finish);
-				} else {
-						alg = get_chg_alg_by_name("pps");
-						if(alg) {
-								info = chg_alg_dev_get_drvdata(alg);
-								if (info && info->data) {
-									desc1 = info->desc;
-									if (desc1 == NULL)
-										return is_ok;
-									if ((nci->info->battery_temp > desc1->tbat_level_def[PE50_THERMAL_VERY_HOT]) && (info->data->state == PPS_ALGO_STOP) && (info->data->finish != true))
-										is_ok = false;
-									pr_err("%s:pps state=%d, finish=%d\n", __func__, info->data->state,
-									info->data->finish);
-								}
-						}
+		info = chg_alg_dev_get_drvdata(alg);
+		if (info && info->data) {
+			desc1 = info->desc;
+			if (desc1 == NULL)
+				return is_ok;
+			if ((nci->info->battery_temp > desc1->tbat_level_def[PE50_THERMAL_VERY_HOT]) && (info->data->state == PE50_ALGO_STOP) && (info->data->finish != true)) {
+				is_ok = false;
+			} else {
+				alg = get_chg_alg_by_name("pps");
+				if(alg) {
+					info = chg_alg_dev_get_drvdata(alg);
+					if (info && info->data) {
+						desc1 = info->desc;
+						if (desc1 == NULL)
+							return is_ok;
+						if ((nci->info->battery_temp > desc1->tbat_level_def[PE50_THERMAL_VERY_HOT]) && (info->data->state == PPS_ALGO_STOP) && (info->data->finish != true))
+							is_ok = false;
+					}
 				}
 			}
+		}
 	}
 	return is_ok;
 }
