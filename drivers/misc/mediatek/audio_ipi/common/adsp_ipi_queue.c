@@ -267,23 +267,7 @@ inline uint32_t dsp_get_num_messages_in_queue(
 }
 
 
-#define DUMP_IPC_MSG(description, p_dsp_msg) \
-	do { \
-		struct ipi_msg_t *p_ipi_msg = NULL; \
-		if (description == NULL || (p_dsp_msg) == NULL) \
-			break; \
-		if (p_dsp_msg->len >= IPI_MSG_HEADER_SIZE) { \
-			p_ipi_msg = (struct ipi_msg_t *)p_dsp_msg->buf; \
-			if (p_ipi_msg->magic == IPI_MSG_MAGIC_NUMBER) \
-				DUMP_IPI_MSG(description, p_ipi_msg); \
-		} else { \
-			pr_info("%s, ipi_id: %u, buf %p, len: %u", \
-				description, \
-				p_dsp_msg->ipi_id, \
-				p_dsp_msg->buf, \
-				p_dsp_msg->len); \
-		} \
-	} while (0)
+#define DUMP_IPC_MSG(description, p_dsp_msg) ((void)0)
 
 
 
