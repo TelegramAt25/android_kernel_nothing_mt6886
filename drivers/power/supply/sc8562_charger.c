@@ -179,7 +179,7 @@ static int sc8562_mode_data[] = {
 #define SC_I2C_RETRY_DELAY          (50)
 /*********************************************************************/
 #define sc_err(fmt, ...)   pr_err("%s:" fmt,__func__, ##__VA_ARGS__);
-#define sc_info(fmt, ...)  pr_info("%s:" fmt,__func__, ##__VA_ARGS__);
+#define sc_info(fmt, ...)  pr_debug("%s:" fmt,__func__, ##__VA_ARGS__);
 #define sc_dbg(fmt, ...)   pr_debug("%s:" fmt,__func__, ##__VA_ARGS__);
 static int sc8562_get_adc_data(struct sc8562 *sc, int channel,  int *result);
 /************************************************************************/
@@ -545,18 +545,15 @@ static int sc8562_set_ss_timeout(struct sc8562 *sc, int timeout)
 /*********************************************************************/
 static int sc8562_enable_charge(struct sc8562 *sc, bool enable)
 {
-	u8 data = 0;
-	u8 addr = 0, val = 0;
-	u8 pin_diag = 0, cp_switch = 0;
+	u8 val = 0;
 	int vbus_value = 0, vout_value = 0;
-	int ret = 0, ret1 = 0;
+	int ret = 0;
 
 	if (enable)
 		val = SC8562_CHG_ENABLE;
 	else
 		val = SC8562_CHG_DISABLE;
 	val <<= SC8562_CHG_EN_SHIFT;
-	sc_err("sc8562 charger %s\n", enable == false ? "disable" : "enable");
 
 	if (!enable) {
 		sc8562_enable_ibusucp(sc, true);
@@ -568,14 +565,6 @@ static int sc8562_enable_charge(struct sc8562 *sc, bool enable)
 		sc8562_set_ss_timeout(sc, 0);
 		sc8562_get_adc_data(sc, ADC_VBUS, &vbus_value);
 		sc8562_get_adc_data(sc, ADC_VOUT, &vout_value);
-		sc_err("vbus/vout:%d / %d = %d \r\n", vbus_value, vout_value, vbus_value*100/vout_value);
-		sc_err("work_mode : %d \n", sc->work_mode);
-		ret1 = sc8562_read_byte(sc, SC8562_REG_0A, &data);
-		if (ret1 >= 0) {
-			sc_err(" high:%d  low:%d \n", 
-			((data & SC8562_VBUS_ERRORHI_STAT_MASK) >> SC8562_VBUS_ERRORHI_STAT_SHIFT),
-			((data & SC8562_VBUS_ERRORLO_STAT_MASK) >> SC8562_VBUS_ERRORLO_STAT_SHIFT));
-		}
 
 		ret = sc8562_update_bits(sc, SC8562_REG_0B, SC8562_CHG_EN_MASK, val);
 
@@ -583,26 +572,6 @@ static int sc8562_enable_charge(struct sc8562 *sc, bool enable)
 
 		mdelay(300);
 
-		ret1 = sc8562_read_byte(sc, SC8562_REG_0A, &data);
-		if (ret1 >= 0) {
-			pin_diag = (data & SC8562_PIN_DIAG_FALL_FLAG_MASK) >> SC8562_PIN_DIAG_FALL_FLAG_SHIFT;
-			cp_switch = (data & SC8562_CP_SWITCHING_STAT_MASK) >> SC8562_CP_SWITCHING_STAT_SHIFT;
-			
-			sc_err("pin_diag : %d, cp_switch :%d \n", pin_diag, cp_switch);
-			if (!cp_switch) {
-				sc_err("enable fail \r\n");
-				for (addr = 0x0; addr <= 0x6e; addr++) {
-					if (addr <= 0x29 || addr >= 0x6c) {
-						ret1 = sc8562_read_byte(sc, addr, &val);
-						if (ret1 > 0) {
-							sc_info("sc8562_reg[0x%02X] = 0x%02X\n", addr, val);
-						}
-					}
-				}
-			} else {
-				sc_err("enable success!\n");
-			}
-		}        
 		enable_irq(sc->irq);
 	}
 
