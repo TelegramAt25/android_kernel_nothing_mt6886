@@ -204,7 +204,7 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		    (noti->typec_state.new_state == TYPEC_ATTACHED_SNK ||
 		    noti->typec_state.new_state == TYPEC_ATTACHED_CUSTOM_SRC ||
 		    noti->typec_state.new_state == TYPEC_ATTACHED_NORP_SRC)) {
-			pr_info("%s USB Plug in, pol = %d\n", __func__,
+			pr_debug("%s USB Plug in, pol = %d\n", __func__,
 					noti->typec_state.polarity);
 			handle_typec_pd_attach(mci, ATTACH_TYPE_TYPEC);
 		} else if ((noti->typec_state.old_state == TYPEC_ATTACHED_SNK ||
@@ -212,9 +212,9 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 		    noti->typec_state.old_state == TYPEC_ATTACHED_NORP_SRC ||
 		    noti->typec_state.old_state == TYPEC_ATTACHED_AUDIO)
 			&& noti->typec_state.new_state == TYPEC_UNATTACHED) {
-			pr_info("%s USB Plug out\n", __func__);
+			pr_debug("%s USB Plug out\n", __func__);
 			if (mci->tcpc_kpoc) {
-				pr_info("%s: typec unattached, power off\n",
+				pr_debug("%s: typec unattached, power off\n",
 					__func__);
 				while (1) {
 					if (counter >= 20000) {
@@ -222,10 +222,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 						break;		/* for coverity */
 					}
 					if (mci->is_suspend == false) {
-						pr_info("%s, not in suspend, shutdown\n", __func__);
+						pr_debug("%s, not in suspend, shutdown\n", __func__);
 						kernel_power_off();
 					} else {
-						pr_info("%s, suspend, cannot shutdown\n", __func__);
+						pr_debug("%s, suspend, cannot shutdown\n", __func__);
 						msleep(20);
 					}
 					counter++;
@@ -234,18 +234,14 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 			handle_typec_pd_attach(mci, ATTACH_TYPE_NONE);
 		} else if (noti->typec_state.old_state == TYPEC_ATTACHED_SRC &&
 			noti->typec_state.new_state == TYPEC_ATTACHED_SNK) {
-			pr_info("%s Source_to_Sink, turn to PD Flow\n", __func__);
+			pr_debug("%s Source_to_Sink, turn to PD Flow\n", __func__);
 		}  else if (noti->typec_state.old_state == TYPEC_ATTACHED_SNK &&
 			noti->typec_state.new_state == TYPEC_ATTACHED_SRC) {
-			pr_info("%s Sink_to_Source\n", __func__);
+			pr_debug("%s Sink_to_Source\n", __func__);
 			handle_typec_pd_attach(mci, ATTACH_TYPE_NONE);
 		}
 		break;
 	case TCP_NOTIFY_EXT_DISCHARGE:
-		if (noti->en_state.en)
-			pr_info("%s turn on charger discharge\n", __func__);
-		else
-			pr_info("%s turn off charger discharge\n", __func__);
 		break;
 	default:
 		break;
