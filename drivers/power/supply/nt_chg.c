@@ -306,12 +306,6 @@ static int cooling_state_to_charger_limit(struct nt_chg_info *nci)
 	if(is_fast_charge && alg){
 		switch(alg->alg_id){
 		case PE5_ID:
-			if(fcc > 0){
-				pdata_dvchg->thermal_input_current_limit = (fcc*1000)/nci->cp_workmode + nci->adc_compensation;
-			}else{
-				pdata_dvchg->thermal_input_current_limit = -1;
-			}
-			break;
 		case PPS_ID:
 			if(fcc > 0){
 				pdata_dvchg->thermal_input_current_limit = (fcc*1000)/nci->cp_workmode + nci->adc_compensation;
@@ -336,21 +330,15 @@ static int cooling_state_to_charger_limit(struct nt_chg_info *nci)
 		default:
 			break;
 		}
-		pr_info("%s: fcc_store %d ma,fast_charge = %d ,alg_id = %d \n", __func__, fcc, is_fast_charge,alg->alg_id);
 	}else{
 		if((fcc > 0) && (fcc <= (nci->ac_charger_current/1000))){
 			pdata->thermal_charging_current_limit = fcc*1000;
 		}else{
 			pdata->thermal_charging_current_limit = -1;
 		}
-		pr_info("%s: fcc_store %d ma\n", __func__, fcc);
 	}
 
-	if(fcc == 0){
-		info->cmd_discharging = true;
-	}else{
-		info->cmd_discharging = false;
-	}
+	info->cmd_discharging = (fcc == 0);
 	mutex_unlock(&nci->proc_lock);
 	return 0;
 }
