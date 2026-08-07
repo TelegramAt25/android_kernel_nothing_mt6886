@@ -3273,7 +3273,6 @@ int battery_update_routine(void *arg)
 
 	battery_update_psd(gm);
 	while (1) {
-		bm_err("%s\n", __func__);
 		ret = wait_event_interruptible(gm->wait_que,
 			(gm->fg_update_flag > 0) && !gm->in_sleep);
 		mutex_lock(&gm->fg_update_lock);
