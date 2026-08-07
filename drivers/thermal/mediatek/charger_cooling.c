@@ -133,9 +133,6 @@ static int cooling_state_to_charger_limit_v1(struct charger_cooling_device *chg)
 		return ret;
 	}
 
-	pr_notice("chr limit state %lu, chr %d, input %d, vbus %d\n",
-		chg->target_state, prop_bat_chr.intval, prop_input.intval, prop_vbus.intval);
-
 	power_supply_changed(chg->chg_psy);
 
 	if (chg->type == DUAL_CHARGER) {
