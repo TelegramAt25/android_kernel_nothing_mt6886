@@ -948,7 +948,7 @@ static int panel_hbm_set_cmdq(struct drm_panel *panel, void *dsi,
 
 	if (en)
 	{
-		pr_err("[panel] %s : set HBM\n",__func__);
+		pr_debug("[panel] %s : set HBM\n",__func__);
 	#if 0
 		lcm_dcs_write_seq_static(ctx,0xF0,0x55, 0xAA, 0x52, 0x08, 0x00);   //ELVSS
 		udelay(100);
@@ -961,7 +961,7 @@ static int panel_hbm_set_cmdq(struct drm_panel *panel, void *dsi,
 	}
 	else
 	{
-		pr_err("[panel] %s : set normal = %d\n",__func__,bl_level);
+		pr_debug("[panel] %s : set normal = %d\n",__func__,bl_level);
 		level_normal = bl_level * BLK_LEVEL_MAP3/255 + BLK_LEVEL_OFFSET;
 		normal_tb0[1] = (level_normal>>8)&0xff;
 		normal_tb0[2] = (level_normal)&0xff;
@@ -1273,7 +1273,7 @@ static void mode_switch_to_120(struct drm_panel *panel,
 	struct lcm *ctx = panel_to_lcm(panel);
 
 	if (stage == BEFORE_DSI_POWERDOWN) {
-		pr_err("[panel] %s\n",__func__);
+		pr_debug("[panel] %s\n",__func__);
 		lcm_dcs_write_seq_static(ctx,0xFE,0x40);
 		lcm_dcs_write_seq_static(ctx,0xBD,0x07);
 		lcm_dcs_write_seq_static(ctx,0xFE,0xA1);
@@ -1297,7 +1297,7 @@ static void mode_switch_to_90(struct drm_panel *panel,
 	struct lcm *ctx = panel_to_lcm(panel);
 
 	if (stage == BEFORE_DSI_POWERDOWN) {
-		pr_err("[panel] %s\n",__func__);
+		pr_debug("[panel] %s\n",__func__);
 		lcm_dcs_write_seq_static(ctx,0xFE,0x40);
 		lcm_dcs_write_seq_static(ctx,0xBD,0x06);
 		lcm_dcs_write_seq_static(ctx,0xFE,0xA1);
@@ -1321,7 +1321,7 @@ static void mode_switch_to_60(struct drm_panel *panel,
 	struct lcm *ctx = panel_to_lcm(panel);
 
 	if (stage == BEFORE_DSI_POWERDOWN) {
-		pr_err("[panel] %s\n",__func__);
+		pr_debug("[panel] %s\n",__func__);
 		lcm_dcs_write_seq_static(ctx,0xFE,0x40);
 		lcm_dcs_write_seq_static(ctx,0xBD,0x00);
 		lcm_dcs_write_seq_static(ctx,0xFE,0xA1);
@@ -1345,7 +1345,7 @@ static int mode_switch(struct drm_panel *panel,
 {
 	int ret = 0;
 	struct drm_display_mode *m = get_mode_by_id(connector, dst_mode);
-	pr_err("[panel] %s,cur_mode = %d,dst_mode = %d\n",__func__,cur_mode,dst_mode);
+	pr_debug("[panel] %s,cur_mode = %d,dst_mode = %d\n",__func__,cur_mode,dst_mode);
 	if (cur_mode == dst_mode)
 		return ret;
 
@@ -1467,7 +1467,7 @@ static int lcm_get_modes(struct drm_panel *panel,
 	drm_mode_set_name(mode);
 	mode->type = DRM_MODE_TYPE_DRIVER ;
 	drm_mode_probed_add(connector, mode);
-	pr_err("[panel] %s,333\n",__func__);
+	pr_debug("[panel] %s,333\n",__func__);
 	
 	
 	mode_1 = drm_mode_duplicate(connector->dev, &default_mode);
@@ -1480,7 +1480,7 @@ static int lcm_get_modes(struct drm_panel *panel,
 	drm_mode_set_name(mode_1);
 	mode_1->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
 	drm_mode_probed_add(connector, mode_1);
-	pr_err("[panel] %s,111\n",__func__);
+	pr_debug("[panel] %s,111\n",__func__);
 
 	mode_2 = drm_mode_duplicate(connector->dev, &switch_mode_90);
 	if (!mode_2) {
@@ -1492,7 +1492,7 @@ static int lcm_get_modes(struct drm_panel *panel,
 	drm_mode_set_name(mode_2);
 	mode_2->type = DRM_MODE_TYPE_DRIVER ;
 	drm_mode_probed_add(connector, mode_2);
-	pr_err("[panel] %s,222\n",__func__);
+	pr_debug("[panel] %s,222\n",__func__);
 
 	
 
