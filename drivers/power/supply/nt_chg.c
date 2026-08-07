@@ -30,14 +30,6 @@ extern int g_nt_adp_ver_fw;
 extern int g_nt_adp_ver_hw;
 extern int g_nt_area_id;
 
-static int _uA_to_mA(int uA)
-{
-	if (uA == -1)
-		return -1;
-	else
-		return uA / 1000;
-}
-
 const char * const POWER_SUPPLY_USB_TYPE_TEXT[] = {
 	[POWER_SUPPLY_USB_TYPE_UNKNOWN]		= "Unknown",
 	[POWER_SUPPLY_USB_TYPE_SDP]		= "SDP",
@@ -1658,24 +1650,6 @@ static int nt_charger_pm_event(struct notifier_block *notifier,
 	return NOTIFY_DONE;
 }
 #endif /* CONFIG_PM */
-static int chg_check_status(enum power_supply_property psp)
-{
-	int ret = 0;
-	union power_supply_propval prop;
-	struct power_supply *psy = NULL;
-
-	psy = power_supply_get_by_name("aw32280-standalone");
-	if (psy == NULL || IS_ERR(psy)) {
-		psy = power_supply_get_by_name("sc8562-standalone");
-	}
-	if (psy == NULL || IS_ERR(psy)) {
-		pr_err("%s Couldn't get psy\n", __func__);
-	}else{
-		ret = power_supply_get_property(psy, psp, &prop);
-		ret = prop.intval;
-	}
-	return ret;
-}
 
 static void nt_update_wakeup_status(struct nt_chg_info *nci)
 {
@@ -1881,16 +1855,11 @@ static void nt_cam_work(struct work_struct *work)
 static int nt_charger_routine_thread(void *arg)
 {
 	int ret  = 0;
-	u32 val  = 0;
-	int fcc = 0,fv = 0,icl = 0,ibus = 0,chg_type = 0,real_cap = 0,usb_sus = 0,boost_cc = 0,boost_cv = 0;
-	int pump = 0, htemp_charge = 0,battTemp = 0,plugGpio = 0,chg_status = 0,AICR = 0,CV = 0, MIVR = 0, ICHG  = 0;
-	char BattInit = 1, soc_time = 0;
+	int ibus = 0;
+	int pump = 0;
 	static int soc = 0, soc_pre = 0;
-	bool pump_en = false, chg_en = false,boost_en = false,ovp = false, wpc = false, wls_sus = false;
 	unsigned long flags = 0;
-	static struct charger_data *pdata = NULL;
 	struct nt_chg_info *nci = arg;
-	char keyinfo_buffer_temp[DUMP_MSG_BUF_SIZE] = "\0";
 
 	while (1) {
 		ret = wait_event_interruptible(nci->wait_que,
@@ -1912,49 +1881,17 @@ static int nt_charger_routine_thread(void *arg)
 		pump = charger_dev_get_cp_status(nci->info->dvchg1_dev, CP_DEV_REVISION);
 		ibus_accuracy_compensation(nci,pump);
 		cooling_state_to_charger_limit(nci);
-		ovp = charger_dev_get_cp_status(nci->info->dvchg1_dev, CP_DEV_OVPGATE);
-		wpc = charger_dev_get_cp_status(nci->info->dvchg1_dev, CP_DEV_WPCGATE);
-		charger_dev_is_enabled(nci->info->dvchg1_dev, &pump_en);
-		charger_dev_is_enabled(nci->info->chg1_dev, &chg_en);
+		charger_dev_get_cp_status(nci->info->dvchg1_dev, CP_DEV_OVPGATE);
+		charger_dev_get_cp_status(nci->info->dvchg1_dev, CP_DEV_WPCGATE);
 
-		fcc = chg_check_battery_info(nci,POWER_SUPPLY_PROP_CURRENT_NOW);
-		fv = nci->info->data.battery_cv;
-		pdata = &nci->info->chg_data[CHG1_SETTING];
-		if(pdata)
-			icl = _uA_to_mA(pdata->input_current_limit);
 		ibus = chg_check_ibus(nci);
 		if (ibus > nci->chg_icl_max) {
 			nci->chg_icl_max = ibus;
 		}
-		chg_type = chg_check_pmic_info(nci,POWER_SUPPLY_PROP_TYPE);
 		soc_pre = soc;
 		soc = chg_check_battery_info(nci,POWER_SUPPLY_PROP_CAPACITY);
-		real_cap = chg_check_battery_info(nci,POWER_SUPPLY_PROP_CHARGE_COUNTER);
-		htemp_charge = chg_check_status(POWER_SUPPLY_PROP_TEMP);
-		plugGpio = nci->wd0_state;
-		battTemp = chg_check_battery_info(nci,POWER_SUPPLY_PROP_TEMP);
-		chg_status = chg_check_pmic_info(nci,POWER_SUPPLY_PROP_STATUS);
-		boost_en = get_usb_otg_status();
-		charger_dev_get_input_current(nci->info->chg1_dev,&AICR);
-		charger_dev_get_constant_voltage(nci->info->chg1_dev,&CV);
-		charger_dev_get_mivr(nci->info->chg1_dev,&MIVR);
-		charger_dev_get_charging_current(nci->info->chg1_dev,&ICHG);
-		charger_dev_get_boost_current_limit(nci->info->chg1_dev, &boost_cc);
-		charger_dev_get_boost_voltage_limit(nci->info->chg1_dev, &val);
-		boost_cv = ((val & BOOST_CV_MAX) - BOOST_CV_MIN)*BOOST_CV_OFFSET + BOOST_CV_BASE;
 		check_aging_mode_status(nci);
 		check_battery_psy_change_status(nci, soc_pre, soc);
-		scnprintf(keyinfo_buffer_temp,DUMP_MSG_BUF_SIZE - 1,"pump:0x%x,pump_en:%d,ovp:%d,wpc:%d, fcc:%d,fv:%d,icl:%d,ibus_ma:%d,usb_sus:%d,wls_sus:%d,BattInit:%d, chg_type:%d,soc:%d,soc_time:%d,soc_pre:%d,real_cap:%d,htemp_charge:%d,plug_in:%d,plugGpio:%d,usbTemp:%d,battTemp:%d,CHG_EN:%x,CHG_STATUS:%x,AICL:%d,AICR:%d,CV:%d,MIVR:%d,ICHG:%d,BOOST_CV:%d,BOOST_EN:%d,BOOST_CC:%d,aging_mode:%d,NT_CHG_TYPE:%s,CAM_LMT:{[ON_OFF]%d,[HV_CHG]%d,[LMT_C]%d,g_nt_cp_ctrl:%d,hvcharger:%d} \n",\
-			pump,pump_en,ovp,wpc,\
-			fcc,fv/1000,icl,ibus,usb_sus,wls_sus,\
-			BattInit,chg_type,soc,soc_time,soc_pre,real_cap,\
-			htemp_charge,nci->typec_attach,plugGpio,nci->usbTemp,battTemp,\
-			chg_en,chg_status,_uA_to_mA(pdata->input_current_limit_by_aicl),\
-			_uA_to_mA(AICR),CV/1000,MIVR/1000,_uA_to_mA(ICHG),boost_cv,boost_en,\
-			boost_cc,nci->info->aging_mode,POWER_SUPPLY_USB_TYPE_TEXT[nci->chg_type],\
-			nci->cam_on_off,nci->info->enable_hv_charging,nci->cam_lmt, g_nt_cp_ctrl,nci->is_hvcharger);
-		pr_info("%s \n",keyinfo_buffer_temp);
-		pr_info("[NT]lst_rnd_alg_idx : %d\n",nci->info->lst_rnd_alg_idx);
 		if (nci->charger_thread_polling == true)
 			nt_charger_start_timer(nci);
 		spin_lock_irqsave(&nci->slock, flags);
