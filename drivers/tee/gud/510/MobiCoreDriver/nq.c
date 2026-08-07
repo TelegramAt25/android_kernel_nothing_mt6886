@@ -45,7 +45,6 @@
 #include "main.h"
 #include "clock.h"
 #include "fastcall.h"
-#include "logging.h"
 #include "nq.h"
 
 #define NQ_NUM_ELEMS		64
@@ -497,7 +496,6 @@ int nq_session_notify(struct nq_session *session, u32 id, u32 payload)
 				break;
 			i++;
 		}
-		logging_run();
 	}
 
 	mutex_unlock(&l_ctx.notifications_mutex);
@@ -760,7 +758,6 @@ static int nq_boot_tee(void)
 	ret = fc_init(virt_to_phys(l_ctx.mci),
 		      (uintptr_t)l_ctx.mcp_buffer - (uintptr_t)l_ctx.mci, q_len,
 		      sizeof(*l_ctx.mcp_buffer));
-	logging_run();
 	if (ret)
 		goto out;
 
@@ -785,7 +782,6 @@ static int nq_boot_tee(void)
 
 	/* First empty N-SIQ to setup of the MCI structure */
 	ret = fc_nsiq(0, 0);
-	logging_run();
 	if (ret)
 		goto out;
 
@@ -805,7 +801,6 @@ static int nq_boot_tee(void)
 		}
 
 		ret = fc_info(MC_EXT_INFO_ID_MCI_VERSION, &status, NULL);
-		logging_run();
 		if (ret)
 			goto out;
 
@@ -816,7 +811,6 @@ static int nq_boot_tee(void)
 			for (timeslice = 0; timeslice < 10; timeslice++) {
 				int tmp_ret = fc_yield(0, 0, NULL);
 
-				logging_run();
 				if (tmp_ret) {
 					ret = tmp_ret;
 					goto out;
@@ -983,10 +977,6 @@ static s32 tee_schedule(uintptr_t arg, unsigned int *timeout_ms)
 
 		/* Relinquish current CPU to TEE */
 		ret = fc_yield(0, 0, &resp);
-		/* Any worker wakes up the log thread upon returning from SWd.
-		 * Logging should happen whether the yield succeded or not
-		 */
-		logging_run();
 
 		if (ret)
 			goto exit;
@@ -1230,11 +1220,6 @@ int nq_start(void)
 		ret = fc_trace_init(l_ctx.log_buffer, l_ctx.log_buffer_size);
 		tee_restore_affinity(old_affinity);
 		if (!ret) {
-			/* Trace level setup */
-			logging_trace_level_init();
-
-			logging_run();
-			l_ctx.log_buffer_busy = true;
 			mc_dev_info("registered log buffer of size %d",
 				    l_ctx.log_buffer_size);
 		} else {
@@ -1404,10 +1389,6 @@ int nq_init(void)
 	if (ret)
 		goto err_clock;
 
-	ret = logging_init(&l_ctx.log_buffer, &l_ctx.log_buffer_size);
-	if (ret)
-		goto err_logging;
-
 	/* Setup crash handler function list */
 	BLOCKING_INIT_NOTIFIER_HEAD(&l_ctx.tee_stop_notifiers);
 
@@ -1475,8 +1456,6 @@ int nq_init(void)
 	return 0;
 
 err_mci:
-	logging_exit(l_ctx.log_buffer_busy);
-err_logging:
 	mc_clock_exit();
 err_clock:
 	return ret;
@@ -1488,7 +1467,6 @@ void nq_exit(void)
 		kfree(l_ctx.dump.buf);
 
 	free_pages((unsigned long)l_ctx.mci, l_ctx.order);
-	logging_exit(l_ctx.log_buffer_busy);
 	mc_clock_exit();
 }
 
