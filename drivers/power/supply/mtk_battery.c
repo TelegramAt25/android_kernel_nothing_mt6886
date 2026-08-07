@@ -3231,24 +3231,6 @@ static void fg_drv_update_hw_status(struct mtk_battery *gm)
 	gm->tbat = force_get_tbat_internal(gm);
 	fg_update_porp_control(prop_control);
 
-	bm_err("car[%d,%ld,%ld,%ld,%ld] tmp:%d soc:%d uisoc:%d vbat:%d ibat:%d baton:%d algo:%d gm3:%d %d %d %d %d %d, get_prop:%d %d %d %d %d %ld %d, boot:%d\n",
-		gauge_get_int_property(GAUGE_PROP_COULOMB),
-		gm->coulomb_plus.end, gm->coulomb_minus.end,
-		gm->uisoc_plus.end, gm->uisoc_minus.end,
-		gm->tbat,
-		gm->soc, gm->ui_soc,
-		gm->vbat,
-		gm->ibat,
-		gm->baton,
-		gm->algo.active,
-		gm->disableGM30, gm->fg_cust_data.disable_nafg,
-		gm->ntc_disable_nafg, gm->cmd_disable_nafg, gm->vbat0_flag,
-		gm->no_prop_timeout_control, prop_control->last_period.tv_sec,
-		prop_control->last_binder_counter, prop_control->total_fail,
-		prop_control->max_gp, prop_control->max_get_prop_time.tv_sec,
-		prop_control->max_get_prop_time.tv_nsec/1000000,
-		prop_control->last_diff_time.tv_sec, gm->bootmode);
-
 	fg_drv_update_daemon(gm);
 	prop_control->max_get_prop_time = ktime_to_timespec64(0);
 	if (prop_control->end_get_prop_time == 0 &&
@@ -3279,10 +3261,7 @@ static void fg_drv_update_hw_status(struct mtk_battery *gm)
 	if (gm->algo.active == true)
 		battery_update(gm);
 
-	if (bat_get_debug_level() >= BMLOG_DEBUG_LEVEL)
-		ktime = ktime_set(10, 0);
-	else
-		ktime = ktime_set(60, 0);
+	ktime = ktime_set(60, 0);
 
 	hrtimer_start(&gm->fg_hrtimer, ktime, HRTIMER_MODE_REL);
 }
