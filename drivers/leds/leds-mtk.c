@@ -196,6 +196,7 @@ static void mt_leds_remove_brightness_hw_changed(struct led_conf_info *led_conf)
  * DEBUG MACROS
  ***************************************************************************/
 
+#if 0
 static void led_debug_log(struct mt_led_data *s_led,
 		int level, int mappingLevel)
 {
@@ -231,6 +232,7 @@ static void led_debug_log(struct mt_led_data *s_led,
 
 	s_led->debug.last_t = sched_clock();
 }
+#endif
 
 static int get_desp_index(char *name)
 {
@@ -336,8 +338,6 @@ static int mtk_set_brightness(struct led_classdev *led_cdev,
 	led_dat->last_brightness = brightness;
 
 	trans_level = brightness_maptolevel(led_conf, brightness);
-
-	led_debug_log(led_dat, brightness, trans_level);
 
 	call_notifier(LED_BRIGHTNESS_CHANGED, led_conf);
 	mutex_lock(&led_dat->led_access);
