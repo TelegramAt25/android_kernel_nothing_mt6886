@@ -147,7 +147,7 @@ struct VENC_SLB_CB_T {
 };
 extern struct VENC_SLB_CB_T mtk_venc_slb_cb;
 
-#define DEBUG   1
+//#define DEBUG   1
 #define VCU_FPTR(x) (vcu_func.x)
 
 enum mtk_vcodec_debug_level {
