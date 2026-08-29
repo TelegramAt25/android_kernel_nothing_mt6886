@@ -164,13 +164,7 @@ enum mtk_vcodec_debug_level {
 
 #if defined(DEBUG)
 
-#define mtk_v4l2_debug(level, fmt, args...)                              \
-	do {                                                             \
-		if (((mtk_v4l2_dbg_level) & (level)) == (level))           \
-			pr_notice("[MTK_V4L2] level=%d %s(),%d: " fmt "\n",\
-				level, __func__, __LINE__, ##args);      \
-	} while (0)
-
+#define mtk_v4l2_debug(level, fmt, args...) ((void)0)
 #define mtk_v4l2_err(fmt, args...)                \
 	pr_notice("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
 		   ##args)
