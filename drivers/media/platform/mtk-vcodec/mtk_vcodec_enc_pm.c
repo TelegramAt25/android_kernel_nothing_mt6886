@@ -238,17 +238,11 @@ void mtk_vcodec_enc_clock_on(struct mtk_vcodec_ctx *ctx, int core_id)
 	struct mtk_vcodec_dev *dev = NULL;
 	unsigned long flags;
 	unsigned int clk_id = 0;
-	unsigned int smi_start_time, smi_end_time;
-	unsigned int ccf_start_time, ccf_end_time;
-	unsigned int slbc_start_time, slbc_end_time;
 
 	dev = ctx->dev;
 
 #ifndef FPGA_PWRCLK_API_DISABLE
-	time_check_start(MTK_FMT_ENC, core_id);
-
 	clks_data = &pm->venc_clks_data;
-	smi_start_time = jiffies_to_msecs(jiffies);
 	for (larb_index = 0; larb_index < MTK_VENC_MAX_LARB_COUNT; larb_index++) {
 		if (pm->larbvencs[larb_index]) {
 			ret = mtk_smi_larb_get_ex(pm->larbvencs[larb_index], 0);
@@ -257,8 +251,6 @@ void mtk_vcodec_enc_clock_on(struct mtk_vcodec_ctx *ctx, int core_id)
 					larb_index, core_id);
 		}
 	}
-	smi_end_time = jiffies_to_msecs(jiffies);
-	ccf_start_time = jiffies_to_msecs(jiffies);
 	if (core_id == MTK_VENC_CORE_0 ||
 		core_id == MTK_VENC_CORE_1 ||
 		core_id == MTK_VENC_CORE_2) {
@@ -273,28 +265,17 @@ void mtk_vcodec_enc_clock_on(struct mtk_vcodec_ctx *ctx, int core_id)
 		}
 	} else {
 		mtk_v4l2_err("invalid core_id %d", core_id);
-		time_check_end(MTK_FMT_ENC, core_id, 5);
 		return;
 	}
-	ccf_end_time  = jiffies_to_msecs(jiffies);
-	time_check_end(MTK_FMT_ENC, core_id, 5);
-
-
-
 #endif
-
-	slbc_start_time = jiffies_to_msecs(jiffies);
 	spin_lock_irqsave(&dev->enc_power_lock[core_id], flags);
 	dev->enc_is_power_on[core_id] = true;
 	spin_unlock_irqrestore(&dev->enc_power_lock[core_id], flags);
 
 	if (ctx->sysram_enable == 1) {
-		time_check_start(MTK_FMT_ENC, core_id);
 		ret = slbc_power_on(&ctx->sram_data);
-		time_check_end(MTK_FMT_ENC, core_id, 50);
 	}
 
-	time_check_start(MTK_FMT_ENC, core_id);
 	if (core_id == MTK_VENC_CORE_0) {
 		larb_port_num = dev->venc_ports[0].total_port_num;
 		larb_id = 7;
@@ -320,17 +301,7 @@ void mtk_vcodec_enc_clock_on(struct mtk_vcodec_ctx *ctx, int core_id)
 			}
 		}
 	}
-	slbc_end_time = jiffies_to_msecs(jiffies);
-	time_check_end(MTK_FMT_ENC, core_id, 50);
-	if ((slbc_end_time - smi_start_time) > 2) {
-		pr_info("%s %d smi time %u  ccf time %u slbc time %u\n",
-		__func__, __LINE__,
-		(smi_end_time - smi_start_time),
-		(ccf_end_time - ccf_start_time),
-		(slbc_end_time - slbc_start_time));
-	}
 #ifdef CONFIG_MTK_PSEUDO_M4U
-	time_check_start(MTK_FMT_ENC, core_id);
 	if (core_id == MTK_VENC_CORE_0) {
 		larb_port_num = SMI_LARB7_PORT_NUM;
 		larb_id = 7;
@@ -346,7 +317,6 @@ void mtk_vcodec_enc_clock_on(struct mtk_vcodec_ctx *ctx, int core_id)
 		port.Virtuality = 1;
 		m4u_config_port(&port);
 	}
-	time_check_end(MTK_FMT_ENC, core_id, 50);
 #endif
 }
 
