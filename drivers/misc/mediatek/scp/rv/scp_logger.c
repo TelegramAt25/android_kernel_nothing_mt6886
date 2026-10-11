@@ -1023,10 +1023,12 @@ exit:
 void scp_get_log(enum scp_core_id scp_id)
 {
 	pr_debug("[SCP] %s\n", __func__);
+#if IS_ENABLED(CONFIG_MTK_TINYSYS_SCP_DEBUG_SUPPORT)
 #if SCP_LOGGER_ENABLE
 	scp_A_get_last_log(last_log_info.scp_log_buf_maxlen);
 	/*move last log to dram*/
 	scp_crash_log_move_to_buf(scp_id);
+#endif
 #endif
 }
 
