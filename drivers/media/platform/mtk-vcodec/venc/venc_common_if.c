@@ -147,8 +147,6 @@ static int venc_encode_frame(struct venc_inst *inst,
 	unsigned int *bs_size)
 {
 	int ret = 0;
-	unsigned int fm_fourcc = inst->ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc;
-	unsigned int bs_fourcc = inst->ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc;
 
 	mtk_vcodec_debug_enter(inst);
 
@@ -169,14 +167,6 @@ static int venc_encode_frame(struct venc_inst *inst,
 		return ret;
 
 	++inst->frm_cnt;
-	mtk_vcodec_debug(inst,
-		 "Format: frame_va %lld (%c%c%c%c) bs_va:%lld (%c%c%c%c)",
-		  inst->vsi->venc.venc_fb_va,
-		  fm_fourcc & 0xFF, (fm_fourcc >> 8) & 0xFF,
-		  (fm_fourcc >> 16) & 0xFF, (fm_fourcc >> 24) & 0xFF,
-		  inst->vsi->venc.venc_bs_va,
-		  bs_fourcc & 0xFF, (bs_fourcc >> 8) & 0xFF,
-		  (bs_fourcc >> 16) & 0xFF, (bs_fourcc >> 24) & 0xFF);
 
 	return ret;
 }

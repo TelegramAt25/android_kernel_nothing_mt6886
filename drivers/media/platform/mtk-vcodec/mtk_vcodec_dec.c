@@ -1599,10 +1599,6 @@ static void mtk_vdec_worker(struct work_struct *work)
 	int ret;
 	unsigned int i = 0;
 	unsigned int num_planes;
-	struct timespec64 worktvstart;
-	struct timespec64 worktvstart1;
-	struct timespec64 vputvend;
-	struct timespec64 ts_delta;
 	struct mtk_video_dec_buf *dst_buf_info = NULL, *src_buf_info = NULL;
 	struct vb2_v4l2_buffer *dst_vb2_v4l2, *src_vb2_v4l2;
 	unsigned int dpbsize = 0;
@@ -1621,7 +1617,6 @@ static void mtk_vdec_worker(struct work_struct *work)
 	/* process deferred put fb job */
 	mtk_vdec_process_put_fb_job(ctx);
 
-	mtk_vdec_do_gettimeofday(&worktvstart);
 	src_vb2_v4l2 = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
 	if (src_vb2_v4l2 == NULL) {
 		v4l2_m2m_job_finish(dev->m2m_dev_dec, ctx->m2m_ctx);
@@ -1764,11 +1759,7 @@ static void mtk_vdec_worker(struct work_struct *work)
 		mtk_vdec_ts_insert(ctx, ctx->dec_params.timestamp);
 	src_buf_info->used = true;
 	mtk_vdec_check_vcp_active(ctx, false, true, "worker");
-	mtk_vdec_do_gettimeofday(&worktvstart1);
 	ret = vdec_if_decode(ctx, buf, pfb, &src_chg);
-	mtk_vdec_do_gettimeofday(&vputvend);
-	ts_delta = timespec64_sub(vputvend, worktvstart1);
-	mtk_vcodec_perf_log("vpud:%lld (ns)", timespec64_to_ns(&ts_delta));
 
 	res_chg = ((src_chg & VDEC_RES_CHANGE) != 0U) ? true : false;
 	need_more_output =
@@ -1928,9 +1919,6 @@ static void mtk_vdec_worker(struct work_struct *work)
 	}
 
 	v4l2_m2m_job_finish(dev->m2m_dev_dec, ctx->m2m_ctx);
-	mtk_vdec_do_gettimeofday(&vputvend);
-	ts_delta = timespec64_sub(vputvend, worktvstart);
-	mtk_vcodec_perf_log("worker:%lld (ns)", timespec64_to_ns(&ts_delta));
 
 	mutex_unlock(&ctx->worker_lock);
 }
@@ -3406,7 +3394,6 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
 	unsigned long frame_size[2];
 	unsigned int i = 0;
 	unsigned int dpbsize = 1;
-	unsigned int bs_fourcc, fm_fourcc;
 	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
 	struct vb2_v4l2_buffer *vb2_v4l2 = NULL;
 	struct mtk_video_dec_buf *buf = NULL;
@@ -3698,32 +3685,6 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
 		dst_q_data->sizeimage[i] = ctx->last_decoded_picinfo.fb_sz[i];
 		dst_q_data->bytesperline[i] = ctx->last_decoded_picinfo.buf_w;
 	}
-
-	bs_fourcc = ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc;
-	fm_fourcc = ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc;
-	mtk_v4l2_debug(0,
-				   "[%d] Init Vdec OK wxh=%dx%d pic wxh=%dx%d bitdepth:%d lo:%d sz[0]=0x%x sz[1]=0x%x",
-				   ctx->id,
-				   ctx->last_decoded_picinfo.buf_w,
-				   ctx->last_decoded_picinfo.buf_h,
-				   ctx->last_decoded_picinfo.pic_w,
-				   ctx->last_decoded_picinfo.pic_h,
-				   ctx->last_decoded_picinfo.bitdepth,
-				   ctx->last_decoded_picinfo.layout_mode,
-				   dst_q_data->sizeimage[0],
-				   dst_q_data->sizeimage[1]);
-
-	mtk_v4l2_debug(0, "[%d] bs %c%c%c%c fm %c%c%c%c, num_planes %d, fb_sz[0] %d, fb_sz[1] %d, BS %s",
-				   ctx->id,
-				   bs_fourcc & 0xFF, (bs_fourcc >> 8) & 0xFF,
-				   (bs_fourcc >> 16) & 0xFF,
-				   (bs_fourcc >> 24) & 0xFF,
-				   fm_fourcc & 0xFF, (fm_fourcc >> 8) & 0xFF,
-				   (fm_fourcc >> 16) & 0xFF,
-				   (fm_fourcc >> 24) & 0xFF,
-				   dst_q_data->fmt->num_planes,
-				   ctx->last_decoded_picinfo.fb_sz[0],
-				   ctx->last_decoded_picinfo.fb_sz[1], debug_bs);
 
 	ret = vdec_if_get_param(ctx, GET_PARAM_DPB_SIZE, &dpbsize);
 	if (dpbsize == 0)

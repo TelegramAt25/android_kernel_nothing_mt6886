@@ -1242,8 +1242,6 @@ static int vdec_vcp_decode(unsigned long h_vdec, struct mtk_vcodec_mem *bs,
 	uint64_t fb_dma[VIDEO_MAX_PLANES] = { 0 };
 	uint32_t num_planes;
 	unsigned int i = 0;
-	unsigned int bs_fourcc = inst->ctx->q_data[MTK_Q_DATA_SRC].fmt->fourcc;
-	unsigned int fm_fourcc = inst->ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc;
 	unsigned int *errormap_info = &inst->ctx->errormap_info[0];
 
 	num_planes = fb ? inst->vsi->dec.fb_num_planes : 0U;
@@ -1265,11 +1263,6 @@ static int vdec_vcp_decode(unsigned long h_vdec, struct mtk_vcodec_mem *bs,
 		else
 			return vdec_vcp_reset(inst, VDEC_DRAIN_EOS); // drain & return EOS frame (2)
 	}
-
-	mtk_vcodec_debug(inst, "+ BS dma=0x%llx dmabuf=%p format=%c%c%c%c",
-		(uint64_t)bs->dma_addr, bs->dmabuf, bs_fourcc & 0xFF,
-		(bs_fourcc >> 8) & 0xFF, (bs_fourcc >> 16) & 0xFF,
-		(bs_fourcc >> 24) & 0xFF);
 
 	inst->vsi->dec.vdec_bs_va = (u64)(uintptr_t)bs;
 	inst->vsi->dec.bs_dma = (uint64_t)bs->dma_addr;
@@ -1304,13 +1297,6 @@ static int vdec_vcp_decode(unsigned long h_vdec, struct mtk_vcodec_mem *bs,
 		inst->ctx->dec_params.queued_frame_buf_count;
 	inst->vsi->dec.timestamp =
 		inst->ctx->dec_params.timestamp;
-
-	mtk_vcodec_debug(inst, "+ FB y_fd=%llx c_fd=%llx BS fd=%llx format=%c%c%c%c",
-		inst->vsi->dec.fb_fd[0], inst->vsi->dec.fb_fd[1],
-		inst->vsi->dec.bs_fd, fm_fourcc & 0xFF,
-		(fm_fourcc >> 8) & 0xFF, (fm_fourcc >> 16) & 0xFF,
-		(fm_fourcc >> 24) & 0xFF);
-
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_id = AP_IPIMSG_DEC_START;

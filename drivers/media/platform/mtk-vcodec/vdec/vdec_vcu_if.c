@@ -145,7 +145,6 @@ int vcu_dec_ipi_handler(void *data, unsigned int len, void *priv)
 	int msg_ctx_id;
 	struct vdec_vcu_inst *vcu = NULL;
 	struct vdec_fb *pfb;
-	struct timespec64 t_s, t_e;
 	struct task_struct *task = NULL;
 	struct vdec_vsi *vsi;
 	long timeout_jiff;
@@ -226,21 +225,16 @@ int vcu_dec_ipi_handler(void *data, unsigned int len, void *priv)
 			vcodec_trace_count("VDEC_HW_LAT", 2);
 
 		/* wait decoder done interrupt */
-		mtk_vdec_do_gettimeofday(&t_s);
 		ret = mtk_vcodec_wait_for_done_ctx(vcu->ctx,
 			msg->status,
 			MTK_INST_IRQ_RECEIVED,
 			WAIT_INTR_TIMEOUT_MS);
-		mtk_vdec_do_gettimeofday(&t_e);
 
 		if (msg->status == MTK_VDEC_CORE)
 			vcodec_trace_count("VDEC_HW_CORE", 1);
 		else
 			vcodec_trace_count("VDEC_HW_LAT", 1);
 
-		mtk_vcodec_perf_log("irq:%ld",
-			(t_e.tv_sec - t_s.tv_sec) * 1000000LL +
-			(t_e.tv_nsec - t_s.tv_nsec) / 1000);
 		if (ret == -1 && msg->status == MTK_VDEC_CORE) {
 			/* dump smi when vdec core timeout */
 			//smi_debug_bus_hang_detect(0, "VCODEC");
